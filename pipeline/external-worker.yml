@@ -1,0 +1,393 @@
+# YAML anchors
+shared:
+
+  # Task : Extract terraform output and create an ansible vars from it
+  - &extract-terraform-outputs
+    task: extract-terraform-outputs
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ruby
+          tag: latest
+      run:
+        path: /bin/sh
+        args:
+        - -xec
+        - |
+          cp -av merged-((project))/. ansible-playbook/
+          mkdir -p ansible-playbook/group_vars
+          ruby -ryaml -rjson -e 'puts YAML.dump(JSON.parse(STDIN.read))' < terraform/metadata | tail -n +2 | tee -a ansible-playbook/group_vars/all
+      inputs:
+      - name: merged-((project))
+      - name: terraform-((project))-((env))
+        path: "terraform"
+      outputs:
+      - name: ansible-playbook
+
+  # Task : connect on vault API with approle and generate a token from it.
+  # Also provide some extra vars like external_worker_image for terraform
+  - &extract-vars
+    task: extract-vars
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: cycloid/busybox
+          tag: latest
+      run:
+        path: /bin/sh
+        args:
+        - -ec
+        - |
+          DIR=${PWD}/extracted-vars
+          # vault token
+          TOKEN=$(curl -s --request POST --data "{\"role_id\":\"$VAULT_ROLEID\",\"secret_id\":\"$VAULT_SECRETID\"}" https://vault.cycloid.io/v1/auth/approle/login | jq -r '.auth.client_token')
+          echo "vault_token: \"${TOKEN}\"" | tee -a ${DIR}/vars.tf
+          # external_worker_image
+          VERSION=$(curl -s "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
+          echo "external_worker_image: \"concourse/concourse:${VERSION}\"" | tee -a ${DIR}/vars.tf
+      params:
+        VAULT_ROLEID: ((vault.role_id))
+        VAULT_SECRETID: ((vault.secret_id))
+        SCHEDULER_API_ADDRESS: ((scheduler_api_address))
+      outputs:
+      - name: extracted-vars
+
+  # Task : sync and merge with rsync 2 rep. Used to merge stack and config
+  - &merge-stack-and-config
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: cycloid/busybox
+        tag: latest
+    run:
+      path: /bin/sh
+      args:
+      - -xec
+      - |
+        cp -av stack/${STACK_PATH}/. merged-((project))/
+        if [ -d "config/((project))/${CONFIG_PATH}" ]; then
+          cp -av config/((project))/${CONFIG_PATH}/. merged-((project))/
+        fi
+        echo "############ extract tag for the image : <stack_id>-<config_id>"
+        echo "$(git --git-dir=stack/.git rev-parse --verify HEAD --short)-$(git --git-dir=config/.git rev-parse --verify HEAD --short)" | tee merged-((project))/tag
+    outputs:
+    - name: merged-((project))
+      path: "merged-((project))"
+
+groups:
+
+- name: all
+  jobs:
+  - terraform-plan-((project))-((env))
+  - terraform-apply-((project))-((env))
+  - build-ami-((project))-worker-((env))
+  #- terraform-apply-((project))-worker-launchconfig-((env))
+  - deploy-((project))-((env))
+  - clean-worker-ami
+
+- name: terraform-((project))-((env))
+  jobs:
+  - terraform-plan-((project))-((env))
+  - terraform-apply-((project))-((env))
+
+- name: ((project))-((env))
+  jobs:
+  - build-ami-((project))-worker-((env))
+  #- terraform-apply-((project))-worker-launchconfig-((env))
+  - deploy-((project))-((env))
+
+resource_types:
+
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
+
+- name: packer
+  type: docker-image
+  source:
+    repository: jdub/packer-resource
+
+
+resources:
+
+# Terraform by itself
+- name: terraform-((project))-((env))
+  type: terraform
+  source:
+    storage:
+      bucket: ((terraform_storage_bucket_name))
+      bucket_path: ((terraform_storage_bucket_path))
+      region_name: ((aws_default_region))
+      access_key_id: ((aws_admin.access_key))
+      secret_access_key: ((aws_admin.secret_key))
+    vars:
+      access_key: ((aws_admin.access_key))
+      secret_key: ((aws_admin.secret_key))
+      env: ((env))
+      customer: ((customer))
+      project: ((project))
+    env:
+      AWS_ACCESS_KEY_ID: ((aws_admin.access_key))
+      AWS_DEFAULT_REGION: ((aws_default_region))
+      AWS_SECRET_ACCESS_KEY: ((aws_admin.secret_key))
+
+# The Terraform stack (will be merged with the config)
+- name: ((project))-stack-terraform
+  type: git
+  source:
+    uri: https://github.com/cycloid-community-catalog/stack-external-worker
+    branch: master
+    check_every: 2m
+    paths:
+      - terraform/*
+
+# The Terraform config (will be merged with the stack)
+- name: ((project))-config-terraform
+  type: git
+  source:
+    uri: ((external-worker_config_git_repository))
+    branch: ((external-worker_config_git_branch))
+    check_every: 2m
+    private_key: ((external-worker_config_git_key))
+    paths:
+      - ((project))/terraform/((env))/*
+
+# The Ansible stack (will be merged with the config)
+- name: ((project))-stack-ansible
+  type: git
+  source:
+    uri: https://github.com/cycloid-community-catalog/stack-external-worker
+    branch: master
+    check_every: 2m
+    paths:
+      - ansible/*
+
+# # The Ansible config (will be merged with the stack)
+# - name: ((project))-config-ansible
+#   type: git
+#   source:
+#     uri: ((external-worker_config_git_repository))
+#     branch: ((external-worker_config_git_branch))
+#     check_every: 2m
+#     private_key: ((external-worker_config_git_key))
+#     paths:
+#       - ((project))/ansible/*
+
+# The AMI builder for the worker servers (for ASG scale-up)
+- name: ((project))-worker-build-ami
+  type: packer
+  source:
+    aws_access_key_id: ((aws_admin.access_key))
+    aws_secret_access_key: ((aws_admin.secret_key))
+    region: ((aws_default_region))
+
+
+- name: ami-cleaner
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/bonclay7/aws-amicleaner
+
+
+jobs:
+
+# Build a new AMI whenever there is a change in Ansible
+- name: build-ami-((project))-worker-((env))
+  build_logs_to_retain: 10
+  plan:
+  - do:
+
+    - get: ((project))-stack-ansible
+      trigger: true
+    # - get: ((project))-config-ansible
+    #   trigger: true
+
+    # - task: merge-stack-and-config
+      # config:
+      #   <<: *merge-stack-and-config
+      #   inputs:
+      #   - name: project))-config-ansible
+      #     path: "config"
+      #   - name: ((project))-stack-ansible
+      #     path: "stack"
+      # params:
+      #   CONFIG_PATH: ansible
+      #   STACK_PATH: stack-((project))/ansible
+
+    - put: ((project))-worker-build-ami
+      params:
+        # template: merged-stack/packer/worker/packer_template.json
+        template: ((project))-stack-ansible/ansible/packer/worker/packer_template.json
+        env: ((env))
+        project: ((project))
+        role: worker
+        #public_key: ((bastion_public_key))
+        skip_tags: deploy,notforbuild
+        aws_region: ((aws_default_region))
+        ansible_version: ((packer_ansible_version))
+
+# Merge and trigger a plan whenever there is a commit in Terraform stack or config
+- name: terraform-plan-((project))-((env))
+  max_in_flight: 1
+  build_logs_to_retain: 10
+  plan:
+    - do:
+      - get: ((project))-worker-build-ami
+        passed:
+          - build-ami-((project))-worker-((env))
+      - get: ((project))-stack-terraform
+        trigger: true
+      - get: ((project))-config-terraform
+        trigger: true
+
+      - task: merge-stack-and-config
+        config:
+          <<: *merge-stack-and-config
+          inputs:
+          - name: ((project))-config-terraform
+            path: "config"
+          - name: ((project))-stack-terraform
+            path: "stack"
+        params:
+          CONFIG_PATH: terraform/((env))
+          STACK_PATH: terraform
+
+      - *extract-vars
+
+      - put: terraform-((project))-((env))
+        params:
+          env_name: ((project))-((env))
+          plan_only: true
+          terraform_source: merged-((project))/
+          var_files:
+              - extracted-vars/vars.tf
+
+# Merge and trigger an apply manually (no autostart of this job)
+- name: terraform-apply-((project))-((env))
+  build_logs_to_retain: 10
+  plan:
+    - do:
+      - get: ((project))-stack-terraform
+        trigger: false
+        passed:
+          - terraform-plan-((project))-((env))
+      - get: ((project))-config-terraform
+        trigger: false
+        passed:
+          - terraform-plan-((project))-((env))
+      - get: terraform-((project))-((env))
+        trigger: false
+        passed:
+          - terraform-plan-((project))-((env))
+
+      - task: merge-stack-and-config
+        config:
+          <<: *merge-stack-and-config
+          inputs:
+          - name: ((project))-config-terraform
+            path: "config"
+          - name: ((project))-stack-terraform
+            path: "stack"
+        params:
+          CONFIG_PATH: terraform/((env))
+          STACK_PATH: terraform
+
+      - *extract-vars
+
+      - put: terraform-((project))-((env))
+        params:
+          env_name: ((project))-((env))
+          run_plan: true
+          terraform_source: merged-((project))/
+          var_files:
+              - extracted-vars/vars.tf
+
+# Merge and trigger an apply manually (no autostart of this job)
+- name: deploy-((project))-((env))
+  build_logs_to_retain: 10
+  plan:
+    - do:
+      - get: ((project))-worker-build-ami
+        passed:
+          - build-ami-((project))-worker-((env))
+        trigger: true
+
+      - get: ((project))-stack-terraform
+        trigger: false
+        passed:
+          - terraform-apply-((project))-((env))
+
+      - get: ((project))-config-terraform
+        trigger: false
+        passed:
+          - terraform-apply-((project))-((env))
+
+      - get: terraform-((project))-((env))
+        trigger: false
+        passed:
+          - terraform-apply-((project))-((env))
+
+      - task: merge-stack-and-config
+        config:
+          <<: *merge-stack-and-config
+          inputs:
+          - name: ((project))-config-terraform
+            path: "config"
+          - name: ((project))-stack-terraform
+            path: "stack"
+        params:
+          CONFIG_PATH: terraform/((env))
+          STACK_PATH: terraform
+
+      - *extract-vars
+
+      - put: terraform-((project))-((env))
+        params:
+          env_name: ((project))-((env))
+          run_plan: true
+          terraform_source: merged-((project))/
+          var_files:
+              - extracted-vars/vars.tf
+
+- name: clean-worker-ami
+  plan:
+  - do:
+    - get: ami-cleaner
+    - get: ((project))-worker-build-ami
+      passed:
+        - deploy-((project))-((env))
+      trigger: true
+    - task: clean-ami
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: debian
+            tag: jessie
+        run:
+          path: sh
+          dir: ami-cleaner
+          args:
+          - -exc
+          - |
+            (apt-get update -qq; apt-get install -qq -y python-pip)
+            export TERM=linux
+            export TERMINFO=/etc/terminfo
+            pip install -q -e .
+            pip install -q future
+            amicleaner -f --mapping-key tags --mapping-values ${AWS_TAGS} --keep-previous ${KEEP} --full-report
+        params:
+          AWS_DEFAULT_REGION: ((aws_default_region))
+          AWS_ACCESS_KEY_ID: ((aws_admin.access_key))
+          AWS_SECRET_ACCESS_KEY: ((aws_admin.secret_key))
+          AWS_TAGS: cycloid.io project role env
+          KEEP: 1
+        inputs:
+          - name: ami-cleaner

@@ -1,0 +1,29 @@
+# See the variables.tf file in module-infrastructure for a complete description
+# of the options
+
+module "external-worker" {
+
+
+  #####################################
+  # Do not modify the following lines #
+  source = "module-external-worker"
+  #####################################
+
+  project = "($ project $)"
+  env     = "($ environment $)"
+  bastion_sg_allow = "${data.terraform_remote_state.infrastructure.($ environment $)_bastion_sg_allow}"
+  keypair_name     = "cycloid-external-worker"
+
+  metrics_sg_allow        = "${data.terraform_remote_state.prometheus.($ environment $)_metrics_sg_allow}"
+  private_subnets_ids     = "${data.terraform_remote_state.infrastructure.($ environment $)_private_subnets}"
+  public_subnets_ids      = "${data.terraform_remote_state.infrastructure.($ environment $)_public_subnets}"
+  vpc_id                  = "${data.terraform_remote_state.infrastructure.($ environment $)_vpc_id}"
+  worker_svc_count = 1
+  worker_count                      = 2
+  worker_disk_size                  = 50
+  worker_disk_type                  = "gp2"
+  worker_ebs_optimized              = true
+  worker_type                       = "m3.medium"
+  worker_asg_min_size               = 2
+  worker_asg_max_size               = 6
+}

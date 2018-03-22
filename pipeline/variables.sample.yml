@@ -1,0 +1,14 @@
+env: ($ environment $)
+customer: ($ organization_canonical $)
+project: ($ project $)
+
+terraform_storage_bucket_name: ($ project $)-terraform-remote-state
+terraform_storage_bucket_path: ($ project $)/($ environment $)
+
+scheduler_api_address: https://myscheduler.com
+
+aws_default_region: eu-west-1
+
+external-worker_config_git_repository: ssh://APKAJ5QY5LYZNMX5
+external-worker_config_git_branch: config
+
