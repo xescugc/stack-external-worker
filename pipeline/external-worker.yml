@@ -316,7 +316,7 @@ jobs:
       - get: ((project))-worker-build-ami
         passed:
           - build-ami-((project))-worker-((env))
-        trigger: true
+        trigger: false
 
       - get: ((project))-stack-terraform
         trigger: false
