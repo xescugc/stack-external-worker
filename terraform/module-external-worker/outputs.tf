@@ -9,5 +9,5 @@ output "asg_worker_name" {
 
 
 output "asg_workers_sec_group_id" {
-  value = "aws_security_group.worker.id"
+  value = "${aws_security_group.worker.id}"
 }
