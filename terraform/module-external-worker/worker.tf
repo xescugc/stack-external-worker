@@ -118,15 +118,15 @@ EOF
 
 # Cloudwatch autoscaling
 
-resource "aws_autoscaling_policy" "worker-scale-up" {
-  name                   = "${var.project}-worker-scale-up-${var.env}"
-  scaling_adjustment     = "${var.worker_asg_scale_up_scaling_adjustment}"
-  adjustment_type        = "ChangeInCapacity"
-  cooldown               = "${var.worker_asg_scale_up_cooldown}"
-  autoscaling_group_name = "${aws_cloudformation_stack.worker.outputs["AsgName"]}"
-}
-
 # Disable for now as concourse don't really like scale down
+#resource "aws_autoscaling_policy" "worker-scale-up" {
+#  name                   = "${var.project}-worker-scale-up-${var.env}"
+#  scaling_adjustment     = "${var.worker_asg_scale_up_scaling_adjustment}"
+#  adjustment_type        = "ChangeInCapacity"
+#  cooldown               = "${var.worker_asg_scale_up_cooldown}"
+#  autoscaling_group_name = "${aws_cloudformation_stack.worker.outputs["AsgName"]}"
+#}
+#
 #resource "aws_cloudwatch_metric_alarm" "worker-scale-up" {
 #  alarm_name          = "${var.project}-worker-scale-up-${var.env}"
 #  comparison_operator = "GreaterThanOrEqualToThreshold"
