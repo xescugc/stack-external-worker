@@ -1,31 +1,6 @@
 # YAML anchors
 shared:
 
-  # Task : Extract terraform output and create an ansible vars from it
-  - &extract-terraform-outputs
-    task: extract-terraform-outputs
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: ruby
-          tag: latest
-      run:
-        path: /bin/sh
-        args:
-        - -xec
-        - |
-          cp -av merged-((project))/. ansible-playbook/
-          mkdir -p ansible-playbook/group_vars
-          ruby -ryaml -rjson -e 'puts YAML.dump(JSON.parse(STDIN.read))' < terraform/metadata | tail -n +2 | tee -a ansible-playbook/group_vars/all
-      inputs:
-      - name: merged-((project))
-      - name: terraform-((project))-((env))
-        path: "terraform"
-      outputs:
-      - name: ansible-playbook
-
   # Task : connect on vault API with approle and generate a token from it.
   # Also provide some extra vars like external_worker_image for terraform
   - &extract-vars
@@ -35,26 +10,25 @@ shared:
       image_resource:
         type: docker-image
         source:
-          repository: cycloid/busybox
+          repository: cycloid/cycloid-toolkit
           tag: latest
       run:
         path: /bin/sh
         args:
         - -ec
         - |
-          DIR=${PWD}/extracted-vars
-          # vault token
-          TOKEN=$(curl -s --request POST --data "{\"role_id\":\"$VAULT_ROLEID\",\"secret_id\":\"$VAULT_SECRETID\"}" https://vault.cycloid.io/v1/auth/approle/login | jq -r '.auth.client_token')
-          echo "vault_token: \"${TOKEN}\"" | tee -a ${DIR}/vars.tf
+          /usr/bin/vault-approle-login
           # external_worker_image
           VERSION=$(curl -s "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
-          echo "external_worker_image: \"concourse/concourse:${VERSION}\"" | tee -a ${DIR}/vars.tf
-      params:
-        VAULT_ROLEID: ((vault.role_id))
-        VAULT_SECRETID: ((vault.secret_id))
-        SCHEDULER_API_ADDRESS: ((scheduler_api_address))
+          echo "external_worker_image: \"concourse/concourse:${VERSION}\"" | tee -a ${VARS_TF_PATH}
       outputs:
       - name: extracted-vars
+        path: extracted-vars
+    params:
+      VAULT_ROLEID: ((vault.role_id))
+      VAULT_SECRETID: ((vault.secret_id))
+      VARS_TF_PATH: extracted-vars/vars.tf
+      SCHEDULER_API_ADDRESS: ((scheduler_api_address))
 
   # Task : sync and merge with rsync 2 rep. Used to merge stack and config
   - &merge-stack-and-config
@@ -62,22 +36,14 @@ shared:
     image_resource:
       type: docker-image
       source:
-        repository: cycloid/busybox
+        repository: cycloid/cycloid-toolkit
         tag: latest
     run:
-      path: /bin/sh
-      args:
-      - -xec
-      - |
-        cp -av stack/${STACK_PATH}/. merged-((project))/
-        if [ -d "config/((project))/${CONFIG_PATH}" ]; then
-          cp -av config/((project))/${CONFIG_PATH}/. merged-((project))/
-        fi
-        echo "############ extract tag for the image : <stack_id>-<config_id>"
-        echo "$(git --git-dir=stack/.git rev-parse --verify HEAD --short)-$(git --git-dir=config/.git rev-parse --verify HEAD --short)" | tee merged-((project))/tag
+      path: /usr/bin/merge-stack-and-config
     outputs:
-    - name: merged-((project))
-      path: "merged-((project))"
+    - name: merged-stack
+      path: "merged-stack"
+
 
 groups:
 
@@ -255,7 +221,7 @@ jobs:
           - name: ((project))-stack-terraform
             path: "stack"
         params:
-          CONFIG_PATH: terraform/((env))
+          CONFIG_PATH: ((project))/terraform/((env))
           STACK_PATH: terraform
 
       - *extract-vars
@@ -264,7 +230,7 @@ jobs:
         params:
           env_name: ((project))-((env))
           plan_only: true
-          terraform_source: merged-((project))/
+          terraform_source: merged-stack/
           var_files:
               - extracted-vars/vars.tf
 
@@ -295,7 +261,7 @@ jobs:
           - name: ((project))-stack-terraform
             path: "stack"
         params:
-          CONFIG_PATH: terraform/((env))
+          CONFIG_PATH: ((project))/terraform/((env))
           STACK_PATH: terraform
 
       - *extract-vars
@@ -304,7 +270,7 @@ jobs:
         params:
           env_name: ((project))-((env))
           run_plan: true
-          terraform_source: merged-((project))/
+          terraform_source: merged-stack/
           var_files:
               - extracted-vars/vars.tf
 
@@ -342,7 +308,7 @@ jobs:
           - name: ((project))-stack-terraform
             path: "stack"
         params:
-          CONFIG_PATH: terraform/((env))
+          CONFIG_PATH: ((project))/terraform/((env))
           STACK_PATH: terraform
 
       - *extract-vars
@@ -351,7 +317,7 @@ jobs:
         params:
           env_name: ((project))-((env))
           run_plan: true
-          terraform_source: merged-((project))/
+          terraform_source: merged-stack/
           var_files:
               - extracted-vars/vars.tf
 
