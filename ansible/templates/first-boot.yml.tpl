@@ -6,6 +6,7 @@
   vars:
     ami_hostname: "{{ ansible_hostname }}"
     ami_ip_address: "{{ ansible_eth0.ipv4.address }}"
+    var_lib_docker_device: "{{var_lib_docker_device}}"
 {% raw %}
     ami_role: "{{ role }}"
     ami_project: "{{ project }}"
@@ -59,5 +60,15 @@
        regexp: "{{ ami_ip_address }}"
        replace: "{{ ansible_eth0.ipv4.address }}"
      with_items: "{{ relics_ip_address.stdout_lines }}"
+
+   - name: "volume - Check if persistent device need to be initialized"
+     command: "file -s {{var_lib_docker_device}}"
+     ignore_errors: True
+     register: initiate_volume_device
+     failed_when: "'{{var_lib_docker_device}}: data' != initiate_volume_device.stdout"
+
+   - name: "volume - Format persistent volume in btrfs"
+     command: "mkfs.btrfs -L ephemeral0 {{var_lib_docker_device}}"
+     when: initiate_volume_device|success
 
 {% endraw %}

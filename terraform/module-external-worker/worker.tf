@@ -60,6 +60,48 @@ resource "aws_launch_configuration" "worker" {
     volume_type           = "${var.worker_disk_type}"
     delete_on_termination = true
   }
+  ebs_block_device {
+    device_name = "/dev/xvdf"
+    volume_size           = "${var.worker_volume_disk_size}"
+    volume_type           = "${var.worker_volume_disk_type}"
+    delete_on_termination = true
+  }
+
+  # Define the maximum of ephemeral_block_device regarding http://docs.aws.amazon.com/fr_fr/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes
+  # because of https://groups.google.com/forum/#!msg/terraform-tool/JUeilAnAdz4/mATMBZdjLwAJ
+  ephemeral_block_device = {
+    device_name = "/dev/xvdg"
+    virtual_name = "ephemeral0"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdh"
+    virtual_name = "ephemeral1"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdi"
+    virtual_name = "ephemeral2"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdj"
+    virtual_name = "ephemeral3"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdk"
+    virtual_name = "ephemeral4"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdl"
+    virtual_name = "ephemeral5"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdm"
+    virtual_name = "ephemeral6"
+  }
+  ephemeral_block_device = {
+    device_name = "/dev/xvdn"
+    virtual_name = "ephemeral7"
+  }
+
 }
 
 ###
@@ -80,8 +122,8 @@ resource "aws_cloudformation_stack" "worker" {
         "AvailabilityZones": ${jsonencode(var.zones)},
         "VPCZoneIdentifier": ${jsonencode(var.private_subnets_ids)},
         "LaunchConfigurationName": "${aws_launch_configuration.worker.name}",
-        "DesiredCapacity" : "${var.worker_count}",
         "MaxSize": "${var.worker_asg_max_size}",
+        "DesiredCapacity" : "${var.worker_count}",
         "MinSize": "${var.worker_asg_min_size}",
         "TerminationPolicies": ["OldestLaunchConfiguration", "NewestInstance"],
         "HealthCheckType": "EC2",

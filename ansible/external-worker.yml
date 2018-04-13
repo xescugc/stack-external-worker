@@ -16,8 +16,42 @@
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
     - {role: geerlingguy.docker, tags: docker}
+    # Create var-lib-docker.mount
+    - role: cycloid.systemd
+      systemd_type: mount
+      systemd_mount_type: btrfs
+      systemd_mount_device: "{{var_lib_docker_device}}"
+      systemd_mount_mountpoint: /var/lib/docker
+    - role: cycloid.systemd
+      systemd_type: dropin
+      systemd_dropin_service_name: "docker"
+      systemd_dropin_name: storage
+      systemd_dropin_priority: "01"
+      systemd_dropin_content:
+        - "[Unit]"
+        - "After=var-lib-docker.mount"
+        - "Requires=var-lib-docker.mount"
+    # Tag notforbuild because it will be created only at the boot of the instance.
+    # because the EBS volume will be there
     - role: cycloid.ecs
       ecs_config: true
       ecs_cluster: "{{ project }}-ecs-cluster-{{ env }}"
-      tags: ecs, ecs-agent
+      tags: ecs, ecs-agent, notforbuild
 
+  tasks:
+    # Configure docker storage as btrfs. (Better performance for concourse using also baggage claim BTRFS
+    - name: Install btrfs-tools for docker storage
+      apt:
+        name: btrfs-tools
+        state: present
+
+    - name: override the default docker storage
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "storage-driver": "btrfs",
+            "storage-opts": [
+              "btrfs.min_space=2G"
+            ]
+          }

@@ -17,3 +17,9 @@
   version: master
   name: geerlingguy.docker
   scm: git
+
+- src: https://github.com/cycloidio/ansible-systemd
+  version: master
+  name: cycloid.systemd
+  scm: git
+
