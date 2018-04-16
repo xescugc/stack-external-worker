@@ -189,7 +189,7 @@ jobs:
     - put: ((project))-worker-build-ami
       params:
         # template: merged-stack/packer/worker/packer_template.json
-        template: ((project))-stack-ansible/ansible/packer/worker/packer_template.json
+        template: ((project))-stack-ansible/ansible/packer_template.json
         env: ((env))
         project: ((project))
         role: worker

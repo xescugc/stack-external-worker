@@ -66,9 +66,10 @@ variable "worker_count" {}
 variable "worker_spot_price" {}
 
 
-variable "worker_disk_size" {}
-
-variable "worker_disk_type" {}
+variable "worker_disk_size" { default = "20"}
+variable "worker_disk_type" { default = "gp2"}
+variable "worker_volume_disk_size" { default = "50"}
+variable "worker_volume_disk_type" { default = "gp2"}
 
 variable "worker_type" {}
 
