@@ -44,6 +44,11 @@ resource "aws_ecs_task_definition" "worker" {
        {"name": "RAW_PRIVATE_KEY", "value": "${local.formated_worker_ssh_prv}"},
        {"name": "CONCOURSE_TSA_WORKER_PRIVATE_KEY", "value": "/etc/CONCOURSE_TSA_WORKER_PRIVATE_KEY"},
        {"name": "CONCOURSE_GARDEN_LOG_LEVEL", "value": "error"},
+       {"name": "CONCOURSE_GARDEN_MAX_CONTAINERS", "value": "400"},
+       {"name": "CONCOURSE_GARDEN_NETWORK_POOL", "value": "10.254.0.0/20"},
+       {"name": "CONCOURSE_GARDEN_DEFAULT_GRACE_TIME", "value": "120"},
+       {"name": "CONCOURSE_GARDEN_DESTROY_CONTAINERS_ON_STARTUP", "value": "true"},
+       {"name": "CONCOURSE_GARDEN_CLEANUP_PROCESS_DIRS_ON_WAIT", "value": "true"},
        {"name": "CONCOURSE_BAGGAGECLAIM_LOG_LEVEL", "value": "error"}
      ]
   }
