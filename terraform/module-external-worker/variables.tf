@@ -64,6 +64,7 @@ variable "vpc_id" {}
 variable "worker_svc_count" {}
 variable "worker_count" {}
 variable "worker_spot_price" {}
+variable "worker_extra_args" { default = "" }
 
 
 variable "worker_disk_size" { default = "20"}

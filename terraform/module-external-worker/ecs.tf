@@ -34,7 +34,7 @@ resource "aws_ecs_task_definition" "worker" {
     "entryPoint": [ "/bin/sh" ],
     "command": [
        "-c",
-       "echo $$RAW_PUBLIC_KEY > /etc/CONCOURSE_TSA_PUBLIC_KEY;   echo $$RAW_PRIVATE_KEY > /etc/CONCOURSE_TSA_WORKER_PRIVATE_KEY;   echo \"$(date +%Y-%m-%d-%H%M%S) - concourse retire-worker\";   while ! concourse retire-worker --name=$${HOSTNAME} | grep -q worker-not-found; do   echo \".... Try to retire\";   sleep 5;   done;   echo \"$(date +%Y-%m-%d-%H%M%S) - concourse worker\";   /usr/local/bin/dumb-init /usr/local/bin/concourse worker --name=$HOSTNAME --baggageclaim-driver=btrfs"
+       "echo $$RAW_PUBLIC_KEY > /etc/CONCOURSE_TSA_PUBLIC_KEY;   echo $$RAW_PRIVATE_KEY > /etc/CONCOURSE_TSA_WORKER_PRIVATE_KEY;   echo \"$(date +%Y-%m-%d-%H%M%S) - concourse retire-worker\";   while ! concourse retire-worker --name=$${HOSTNAME} | grep -q worker-not-found; do   echo \".... Try to retire\";   sleep 5;   done;   echo \"$(date +%Y-%m-%d-%H%M%S) - concourse worker\";   /usr/local/bin/dumb-init /usr/local/bin/concourse worker --name=$HOSTNAME --baggageclaim-driver=btrfs ${var.worker_extra_args}"
     ],
     "environment": [
        {"name": "CONCOURSE_TSA_HOST", "value": "${var.scheduler_host}"},
