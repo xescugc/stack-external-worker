@@ -90,19 +90,19 @@ resources:
       bucket: ((terraform_storage_bucket_name))
       bucket_path: ((terraform_storage_bucket_path))
       region_name: ((aws_default_region))
-      access_key_id: ((aws_admin.access_key))
-      secret_access_key: ((aws_admin.secret_key))
+      access_key_id: ((aws_access_key))
+      secret_access_key: ((aws_secret_key))
     vars:
       worker_keys_path: ((worker_keys_path))
-      access_key: ((aws_admin.access_key))
-      secret_key: ((aws_admin.secret_key))
+      access_key: ((aws_access_key))
+      secret_key: ((aws_secret_key))
       env: ((env))
       customer: ((customer))
       project: ((project))
     env:
-      AWS_ACCESS_KEY_ID: ((aws_admin.access_key))
+      AWS_ACCESS_KEY_ID: ((aws_access_key))
       AWS_DEFAULT_REGION: ((aws_default_region))
-      AWS_SECRET_ACCESS_KEY: ((aws_admin.secret_key))
+      AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
 
 # The Terraform stack (will be merged with the config)
 - name: ((project))-stack-terraform
@@ -150,8 +150,8 @@ resources:
 - name: ((project))-worker-build-ami
   type: packer
   source:
-    aws_access_key_id: ((aws_admin.access_key))
-    aws_secret_access_key: ((aws_admin.secret_key))
+    aws_access_key_id: ((aws_access_key))
+    aws_secret_access_key: ((aws_secret_key))
     region: ((aws_default_region))
 
 
@@ -352,8 +352,8 @@ jobs:
             amicleaner -f --mapping-key tags --mapping-values ${AWS_TAGS} --keep-previous ${KEEP} --full-report
         params:
           AWS_DEFAULT_REGION: ((aws_default_region))
-          AWS_ACCESS_KEY_ID: ((aws_admin.access_key))
-          AWS_SECRET_ACCESS_KEY: ((aws_admin.secret_key))
+          AWS_ACCESS_KEY_ID: ((aws_access_key))
+          AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
           AWS_TAGS: cycloid.io project role env
           KEEP: 1
         inputs:
