@@ -93,6 +93,7 @@ resources:
       access_key_id: ((aws_admin.access_key))
       secret_access_key: ((aws_admin.secret_key))
     vars:
+      worker_keys_path: ((worker_keys_path))
       access_key: ((aws_admin.access_key))
       secret_key: ((aws_admin.secret_key))
       env: ((env))

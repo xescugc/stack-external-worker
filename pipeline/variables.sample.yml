@@ -11,4 +11,9 @@ aws_default_region: eu-west-1
 
 external-worker_config_git_repository: ssh://APKAJ5QY5LYZNMX5
 external-worker_config_git_branch: config
+external-worker_config_git_key: ((git_codecommit_readonly.ssh_key))
 
+packer_ansible_version: "2.4.2"
+
+# Override the path of the key located in Cycloid creds manager.
+worker_keys_path: external_worker_key
