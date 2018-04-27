@@ -13,7 +13,14 @@ external-worker_config_git_repository: ssh://APKAJ5QY5LYZNMX5
 external-worker_config_git_branch: config
 external-worker_config_git_key: ((git_codecommit_readonly.ssh_key))
 
-packer_ansible_version: "2.4.2"
+packer_ansible_version: "2.4.3"
 
 # Override the path of the key located in Cycloid creds manager.
+# In this key we expect to have 2 fields
+#  * ssh_pub: Public ssh key of the scheduler server.
+#  * ssh_prv: Private ssh key used by your worker.
+# Which currently correspond to concourse parameters : 
+#          --tsa-public-key=                                  File containing a public key to expect from the TSA. [$CONCOURSE_TSA_PUBLIC_KEY]
+#          --tsa-worker-private-key=                          File containing the private key to use when authenticating to the TSA. [$CONCOURSE_TSA_WORKER_PRIVATE_KEY]
 worker_keys_path: external_worker_key
+
