@@ -135,16 +135,16 @@ resources:
     paths:
       - ansible/*
 
-# # The Ansible config (will be merged with the stack)
-# - name: ((project))-config-ansible
-#   type: git
-#   source:
-#     uri: ((external-worker_config_git_repository))
-#     branch: ((external-worker_config_git_branch))
-#     check_every: 2m
-#     private_key: ((external-worker_config_git_key))
-#     paths:
-#       - ((project))/ansible/*
+# The Ansible config (will be merged with the stack)
+- name: ((project))-config-ansible
+  type: git
+  source:
+    uri: ((external-worker_config_git_repository))
+    branch: ((external-worker_config_git_branch))
+    check_every: 2m
+    private_key: ((external-worker_config_git_key))
+    paths:
+      - ((project))/ansible/*
 
 # The AMI builder for the worker servers (for ASG scale-up)
 - name: ((project))-worker-build-ami
@@ -172,25 +172,24 @@ jobs:
 
     - get: ((project))-stack-ansible
       trigger: true
-    # - get: ((project))-config-ansible
-    #   trigger: true
+    - get: ((project))-config-ansible
+      trigger: true
 
-    # - task: merge-stack-and-config
-      # config:
-      #   <<: *merge-stack-and-config
-      #   inputs:
-      #   - name: project))-config-ansible
-      #     path: "config"
-      #   - name: ((project))-stack-ansible
-      #     path: "stack"
-      # params:
-      #   CONFIG_PATH: ansible
-      #   STACK_PATH: stack-((project))/ansible
+    - task: merge-stack-and-config
+      config:
+        <<: *merge-stack-and-config
+        inputs:
+        - name: ((project))-config-ansible
+          path: "config"
+        - name: ((project))-stack-ansible
+          path: "stack"
+      params:
+        CONFIG_PATH: external-worker/ansible
+        STACK_PATH: ansible
 
     - put: ((project))-worker-build-ami
       params:
-        # template: merged-stack/packer/worker/packer_template.json
-        template: ((project))-stack-ansible/ansible/packer_template.json
+        template: merged-stack/packer_template.json
         env: ((env))
         project: ((project))
         role: worker
