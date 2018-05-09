@@ -8,10 +8,8 @@
     # See telegraf inputs for more plugings https://github.com/influxdata/telegraf/tree/master/plugins/inputs
     # Like https://github.com/influxdata/telegraf/tree/master/plugins/inputs/net_response for tcp port checks
     telegraf_plugins_extra:
-      - plugin: processes
-      - plugin: kernel
-      - plugin: linux_sysctl_fs
-      - plugin: conntrack
+      linux_sysctl_fs:
+      conntrack:
 
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
