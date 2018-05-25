@@ -6,10 +6,13 @@ module "external-worker" {
   #####################################
   # Do not modify the following lines #
   source = "module-external-worker"
+
+  project  = "${var.project}"
+  env      = "${var.env}"
+  customer = "${var.customer}"
+
   #####################################
 
-  project                 = "($ project $)"
-  env                     = "($ environment $)"
   bastion_sg_allow        = "${data.terraform_remote_state.infrastructure.($ environment $)_bastion_sg_allow}"
   keypair_name            = "cycloid-external-worker"
 

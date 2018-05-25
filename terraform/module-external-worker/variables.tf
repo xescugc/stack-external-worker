@@ -23,6 +23,8 @@ variable "project" {
   default = "external-worker"
 }
 
+variable "customer" {}
+
 variable "env" {}
 
 variable "short_region" {

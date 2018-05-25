@@ -130,6 +130,7 @@ resource "aws_cloudformation_stack" "worker" {
         "HealthCheckGracePeriod": 600,
         "Tags" : [
           { "Key" : "Name", "Value" : "${var.project}-worker-${lookup(var.short_region, data.aws_region.current.name)}-${var.env}", "PropagateAtLaunch" : "true" },
+          { "Key" : "client", "Value" : "${var.customer}", "PropagateAtLaunch" : "true" },
           { "Key" : "env", "Value" : "${var.env}", "PropagateAtLaunch" : "true" },
           { "Key" : "project", "Value" : "${var.project}", "PropagateAtLaunch" : "true" },
           { "Key" : "role", "Value" : "worker", "PropagateAtLaunch" : "true" },
