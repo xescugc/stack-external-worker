@@ -1,10 +1,8 @@
 data "aws_region" "current" {}
 
 variable "external_worker_image" {
-    default = "concourse/concourse:3.9.2"
+  default = "concourse/concourse:3.9.2"
 }
-
-
 
 variable "scheduler_host" {}
 variable "scheduler_port" {}
@@ -12,16 +10,18 @@ variable "worker_ssh_prv" {}
 variable "worker_ssh_pub" {}
 
 variable "bastion_sg_allow" {
-    default = ""
+  default = ""
 }
 
 variable "metrics_sg_allow" {
-    default = ""
+  default = ""
 }
 
 variable "project" {
   default = "external-worker"
 }
+
+variable "customer" {}
 
 variable "env" {}
 
@@ -54,7 +54,9 @@ variable "public_subnets_ids" {
   type = "list"
 }
 
-variable "zones" {default = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]}
+variable "zones" {
+  default = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+}
 
 variable "vpc_id" {}
 
@@ -62,15 +64,29 @@ variable "vpc_id" {}
 # worker
 #
 variable "worker_svc_count" {}
+
 variable "worker_count" {}
 variable "worker_spot_price" {}
-variable "worker_extra_args" { default = "" }
 
+variable "worker_extra_args" {
+  default = ""
+}
 
-variable "worker_disk_size" { default = "20"}
-variable "worker_disk_type" { default = "gp2"}
-variable "worker_volume_disk_size" { default = "50"}
-variable "worker_volume_disk_type" { default = "gp2"}
+variable "worker_disk_size" {
+  default = "20"
+}
+
+variable "worker_disk_type" {
+  default = "gp2"
+}
+
+variable "worker_volume_disk_size" {
+  default = "50"
+}
+
+variable "worker_volume_disk_type" {
+  default = "gp2"
+}
 
 variable "worker_type" {}
 

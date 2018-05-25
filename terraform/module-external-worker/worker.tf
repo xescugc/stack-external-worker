@@ -9,12 +9,12 @@ resource "aws_security_group" "worker" {
   description = "Front ${var.env} for ${var.project}"
   vpc_id      = "${var.vpc_id}"
 
-#  ingress {
-#    from_port       = 80
-#    to_port         = 80
-#    protocol        = "tcp"
-#    security_groups = ["${aws_security_group.alb-worker.id}"]
-#  }
+  #  ingress {
+  #    from_port       = 80
+  #    to_port         = 80
+  #    protocol        = "tcp"
+  #    security_groups = ["${aws_security_group.alb-worker.id}"]
+  #  }
 
   egress {
     from_port   = 0
@@ -22,7 +22,6 @@ resource "aws_security_group" "worker" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   tags {
     Name    = "${var.project}-worker-${var.env}"
     env     = "${var.env}"
@@ -46,7 +45,6 @@ resource "aws_launch_configuration" "worker" {
     "${var.metrics_sg_allow}",
   ))}"]
 
-
   lifecycle {
     create_before_destroy = true
   }
@@ -60,8 +58,9 @@ resource "aws_launch_configuration" "worker" {
     volume_type           = "${var.worker_disk_type}"
     delete_on_termination = true
   }
+
   ebs_block_device {
-    device_name = "/dev/xvdf"
+    device_name           = "/dev/xvdf"
     volume_size           = "${var.worker_volume_disk_size}"
     volume_type           = "${var.worker_volume_disk_type}"
     delete_on_termination = true
@@ -70,38 +69,44 @@ resource "aws_launch_configuration" "worker" {
   # Define the maximum of ephemeral_block_device regarding http://docs.aws.amazon.com/fr_fr/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes
   # because of https://groups.google.com/forum/#!msg/terraform-tool/JUeilAnAdz4/mATMBZdjLwAJ
   ephemeral_block_device = {
-    device_name = "/dev/xvdg"
+    device_name  = "/dev/xvdg"
     virtual_name = "ephemeral0"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdh"
+    device_name  = "/dev/xvdh"
     virtual_name = "ephemeral1"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdi"
+    device_name  = "/dev/xvdi"
     virtual_name = "ephemeral2"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdj"
+    device_name  = "/dev/xvdj"
     virtual_name = "ephemeral3"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdk"
+    device_name  = "/dev/xvdk"
     virtual_name = "ephemeral4"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdl"
+    device_name  = "/dev/xvdl"
     virtual_name = "ephemeral5"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdm"
+    device_name  = "/dev/xvdm"
     virtual_name = "ephemeral6"
   }
+
   ephemeral_block_device = {
-    device_name = "/dev/xvdn"
+    device_name  = "/dev/xvdn"
     virtual_name = "ephemeral7"
   }
-
 }
 
 ###
@@ -130,6 +135,7 @@ resource "aws_cloudformation_stack" "worker" {
         "HealthCheckGracePeriod": 600,
         "Tags" : [
           { "Key" : "Name", "Value" : "${var.project}-worker-${lookup(var.short_region, data.aws_region.current.name)}-${var.env}", "PropagateAtLaunch" : "true" },
+          { "Key" : "client", "Value" : "${var.customer}", "PropagateAtLaunch" : "true" },
           { "Key" : "env", "Value" : "${var.env}", "PropagateAtLaunch" : "true" },
           { "Key" : "project", "Value" : "${var.project}", "PropagateAtLaunch" : "true" },
           { "Key" : "role", "Value" : "worker", "PropagateAtLaunch" : "true" },
@@ -159,6 +165,7 @@ EOF
 }
 
 # Cloudwatch autoscaling
+
 
 # Disable for now as concourse don't really like scale down
 #resource "aws_autoscaling_policy" "worker-scale-up" {
@@ -212,3 +219,4 @@ EOF
 #  alarm_description = "This metric monitor ec2 cpu utilization on ${var.project} ${var.env}"
 #  alarm_actions     = ["${aws_autoscaling_policy.worker-scale-down.arn}"]
 #}
+
