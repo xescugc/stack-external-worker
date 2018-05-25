@@ -20,6 +20,6 @@ config:
 
   # Configuration of terraform to setup the infrastructure
   terraform:
-    magento:
+    external-worker:
       path: 'terraform/external-worker.tf.sample'
       destination: '($ project $)/terraform/($ environment $)/external-worker.tf'
