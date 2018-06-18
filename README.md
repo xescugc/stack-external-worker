@@ -1,5 +1,3 @@
-# BUILD STACK IN PROGRESS, DON't USE IT
-
 # stack-external-worker
 Deploy external workers pool for Cycloid.io
 
