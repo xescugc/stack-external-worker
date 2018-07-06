@@ -16,6 +16,9 @@ concourse_worker_options: |
   --baggageclaim-volumes=/var/lib/docker/baggageclaim_volumes \
   --baggageclaim-driver=btrfs | tee -a /var/log/concourse-worker.log
 
+#concourse_worker_tag: "foo"
+#concourse_worker_team: "bar"
+
   #--garden-default-grace-time=120s \
   #--garden-graph=/var/lib/docker/garden_graph \
 

@@ -13,7 +13,7 @@
 
   vars_files:
     - "default.yml"
-    - [ "{{ env }}-front.yml", "empty.yml" ]
+    - [ "{{ env }}-worker.yml", "empty.yml" ]
 
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
