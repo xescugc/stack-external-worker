@@ -6,6 +6,6 @@ data "template_file" "user_data_worker" {
     project            = "${var.project}"
     role               = "worker"
     signal_stack_name  = "${var.project}-worker-${var.env}"
-    signal_resource_id = "${var.project}worker${var.env}"
+    signal_resource_id = "externalWorkers${var.env}"
   }
 }
