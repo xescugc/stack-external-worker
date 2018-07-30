@@ -10,6 +10,7 @@ module "external-worker" {
   project  = "${var.project}"
   env      = "${var.env}"
   customer = "${var.customer}"
+  aws_region  = "${var.aws_region}"
 
   #####################################
 
