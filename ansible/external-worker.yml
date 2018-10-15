@@ -49,6 +49,12 @@
     - {role: cycloid.fluentd, tags: fluentd}
 
   tasks:
+    # jq used by user-data to send cloudformation signal
+    - name: Install jq for user-data signal
+      apt:
+        name: jq
+        state: present
+
     # Configure docker storage as btrfs. (Better performance for concourse using also baggage claim BTRFS
     - name: Install btrfs-tools for docker storage
       apt:
