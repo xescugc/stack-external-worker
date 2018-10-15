@@ -27,8 +27,12 @@
            "ami_name": "{{user `project`}}_{{user `role`}}_{{user `env`}}_{{timestamp}}",
            "ssh_username": "admin",
            "run_tags": {
+               "env": "{{user `env`}}",
+               "project": "{{user `project`}}",
+               "role": "{{user `role`}}",
                "cycloid.io": "true",
-               "packer_build": "true"
+               "packer_build": "true",
+               "monitoring-discovery": "false"
            },
            "tags": {
                "Name": "{{user `project`}}_{{user `role`}}_{{user `env`}}-{{timestamp}}",
@@ -39,6 +43,7 @@
           }
        }
   ],
+
 
   "provisioners": [
     {
