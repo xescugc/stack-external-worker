@@ -211,6 +211,7 @@ jobs:
         template: merged-stack/packer_template.json
         env: ((env))
         project: ((project))
+        customer: ((customer))
         role: worker
         public_key: ((debug_public_key))
         skip_tags: deploy,notforbuild

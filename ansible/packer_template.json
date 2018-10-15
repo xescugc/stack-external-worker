@@ -1,6 +1,7 @@
 {
   "variables": {
     "env": "{{env `env`}}",
+    "customer": "{{env `customer`}}",
     "inventory_groups": "{{env `inventory_groups`}}",
     "public_key": "{{env `public_key`}}",
     "role": "{{env `role`}}",
@@ -29,6 +30,7 @@
            "run_tags": {
                "env": "{{user `env`}}",
                "project": "{{user `project`}}",
+               "customer": "{{user `customer`}}",
                "role": "{{user `role`}}",
                "cycloid.io": "true",
                "packer_build": "true",
@@ -38,8 +40,10 @@
                "Name": "{{user `project`}}_{{user `role`}}_{{user `env`}}-{{timestamp}}",
                "env": "{{user `env`}}",
                "project": "{{user `project`}}",
+               "customer": "{{user `customer`}}",
                "role": "{{user `role`}}",
-               "cycloid.io": "true"
+               "cycloid.io": "true",
+               "monitoring-discovery": "false"
           }
        }
   ],
