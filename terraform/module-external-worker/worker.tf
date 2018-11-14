@@ -23,6 +23,7 @@ resource "aws_security_group" "worker" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags {
+    cycloid.io = "true"
     Name    = "${var.project}-worker-${var.env}"
     env     = "${var.env}"
     project = "${var.project}"
