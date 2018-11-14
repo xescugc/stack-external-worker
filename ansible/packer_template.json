@@ -1,5 +1,6 @@
 {
   "variables": {
+    "exposed_team": "{{env `BUILD_TEAM_NAME`}}",
     "env": "{{env `env`}}",
     "customer": "{{env `customer`}}",
     "inventory_groups": "{{env `inventory_groups`}}",
@@ -88,6 +89,7 @@
         "extra_arguments": [
             "--diff",
             "-e 'env={{user `env`}}'",
+            "-e 'concourse_exposed_team={{user `exposed_team`}}'",
             "-e 'ec2_tag_env={{user `env`}}'",
             "-e 'ec2_tag_project={{user `project`}}'",
             "-e 'ec2_tag_role={{user `role`}}'",
