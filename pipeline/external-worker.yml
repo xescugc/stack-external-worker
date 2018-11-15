@@ -50,7 +50,6 @@ shared:
         repository: cycloid/cycloid-toolkit
         tag: latest
     run:
-      path: /usr/bin/merge-stack-and-config
       path: /bin/sh
       args:
       - -ec
