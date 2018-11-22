@@ -58,10 +58,10 @@
             "# Due to https://github.com/mitchellh/packer/issues/41 wait cloud init",
             "for i in $(seq 1 300); do [ -f /var/lib/cloud/instance/boot-finished ] && break || sleep 1; done",
             "echo '{{user `public_key`}}' > /home/admin/.ssh/authorized_keys",
-            "sudo apt-get update",
-            "sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev python-setuptools git curl",
+            "sudo apt-get update -qq > /dev/null",
+            "sudo apt-get install -yqq build-essential libssl-dev libffi-dev python-dev python-setuptools git curl > /dev/null",
             "sudo easy_install --quiet pip",
-            "sudo pip install ansible=={{user `ansible_version`}}",
+            "sudo pip -q install ansible=={{user `ansible_version`}}",
             "echo 'Host *' >> /home/admin/.ssh/config",
             "echo 'StrictHostKeyChecking no' >> /home/admin/.ssh/config",
             "# wait aws role attach to the instance",
@@ -70,6 +70,7 @@
     },
     {
         "type": "ansible-local",
+        "command": "ANSIBLE_STDOUT_CALLBACK=actionable ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook",
         "playbook_file": "packer.yml",
         "playbook_dir": "./",
         "extra_arguments": [
@@ -82,6 +83,7 @@
     },
     {
         "type": "ansible-local",
+        "command": "ANSIBLE_STDOUT_CALLBACK=actionable ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook",
         "galaxy_file": "./requirements.yml",
         "playbook_file": "./external-worker.yml",
         "playbook_dir": "./",
