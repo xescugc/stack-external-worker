@@ -24,89 +24,190 @@ resource "aws_security_group" "worker" {
   }
   tags {
     cycloid.io = "true"
-    Name    = "${var.project}-worker-${var.env}"
-    env     = "${var.env}"
-    project = "${var.project}"
-    role    = "worker"
+    Name       = "${var.project}-worker-${var.env}"
+    env        = "${var.env}"
+    project    = "${var.project}"
+    role       = "worker"
   }
 }
 
-resource "aws_launch_configuration" "worker" {
+resource "aws_launch_template" "worker" {
   name_prefix = "worker_${var.env}_version_"
 
   image_id      = "${data.aws_ami.worker.id}"
   instance_type = "${var.worker_type}"
-  user_data     = "${data.template_file.user_data_worker.rendered}"
+  user_data     = "${base64encode(data.template_file.user_data_worker.rendered)}"
   key_name      = "${var.keypair_name}"
-  spot_price    = "${var.worker_spot_price}"
 
-  security_groups = ["${compact(list(
-    "${var.bastion_sg_allow}",
-    "${aws_security_group.worker.id}",
-    "${var.metrics_sg_allow}",
-  ))}"]
+  instance_market_options {
+    market_type = "spot"
+
+    spot_options {
+      spot_instance_type = "one-time"
+      max_price          = "${var.worker_spot_price}"
+    }
+  }
+
+  network_interfaces {
+    associate_public_ip_address = "${var.worker_associate_public_ip_address}"
+
+    security_groups = ["${compact(list(
+        "${var.bastion_sg_allow}",
+        "${aws_security_group.worker.id}",
+        "${var.metrics_sg_allow}",
+      ))}"]
+  }
 
   lifecycle {
     create_before_destroy = true
   }
 
-  ebs_optimized               = "${var.worker_ebs_optimized}"
-  iam_instance_profile        = "${aws_iam_instance_profile.worker_profile.name}"
-  associate_public_ip_address = "${var.worker_associate_public_ip_address}"
+  ebs_optimized = "${var.worker_ebs_optimized}"
 
-  root_block_device {
-    volume_size           = "${var.worker_disk_size}"
-    volume_type           = "${var.worker_disk_type}"
-    delete_on_termination = true
+  iam_instance_profile {
+    name = "${aws_iam_instance_profile.worker_profile.name}"
   }
 
-  ebs_block_device {
-    device_name           = "/dev/xvdf"
-    volume_size           = "${var.worker_volume_disk_size}"
-    volume_type           = "${var.worker_volume_disk_type}"
-    delete_on_termination = true
+  tags {
+    cycloid.io = "true"
+    Name       = "${var.project}-workertemplate-${var.env}"
+    client     = "${var.customer}"
+    env        = "${var.env}"
+    project    = "${var.project}"
+    role       = "workertemplate"
   }
 
-  # Define the maximum of ephemeral_block_device regarding http://docs.aws.amazon.com/fr_fr/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes
-  # because of https://groups.google.com/forum/#!msg/terraform-tool/JUeilAnAdz4/mATMBZdjLwAJ
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdg"
-    virtual_name = "ephemeral0"
+  tag_specifications {
+    resource_type = "instance"
+
+    tags {
+      cycloid.io = "true"
+      Name       = "${var.project}-worker-${var.env}"
+      client     = "${var.customer}"
+      env        = "${var.env}"
+      project    = "${var.project}"
+      role       = "worker"
+    }
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdh"
-    virtual_name = "ephemeral1"
+  tag_specifications {
+    resource_type = "volume"
+
+    tags {
+      cycloid.io = "true"
+      Name       = "${var.project}-worker-${var.env}"
+      client     = "${var.customer}"
+      env        = "${var.env}"
+      project    = "${var.project}"
+      role       = "worker"
+    }
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdi"
-    virtual_name = "ephemeral2"
+  block_device_mappings {
+    device_name = "xvda"
+
+    ebs {
+      volume_size           = "${var.worker_disk_size}"
+      volume_type           = "${var.worker_disk_type}"
+      delete_on_termination = true
+    }
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdj"
-    virtual_name = "ephemeral3"
+  block_device_mappings {
+    device_name  = "/dev/xvdf"
+    virtual_name = "container_datas"
+
+    ebs {
+      volume_size           = "${var.worker_volume_disk_size}"
+      volume_type           = "${var.worker_volume_disk_type}"
+      delete_on_termination = true
+    }
+  }
+}
+
+# if needed, define the same template without spot instance
+resource "aws_launch_template" "worker_ondemand" {
+  name_prefix = "worker_ondemand_${var.env}_version_"
+
+  image_id      = "${data.aws_ami.worker.id}"
+  instance_type = "${var.worker_type}"
+  user_data     = "${base64encode(data.template_file.user_data_worker.rendered)}"
+  key_name      = "${var.keypair_name}"
+
+  network_interfaces {
+    associate_public_ip_address = "${var.worker_associate_public_ip_address}"
+
+    security_groups = ["${compact(list(
+        "${var.bastion_sg_allow}",
+        "${aws_security_group.worker.id}",
+        "${var.metrics_sg_allow}",
+      ))}"]
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdk"
-    virtual_name = "ephemeral4"
+  lifecycle {
+    create_before_destroy = true
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdl"
-    virtual_name = "ephemeral5"
+  ebs_optimized = "${var.worker_ebs_optimized}"
+
+  iam_instance_profile {
+    name = "${aws_iam_instance_profile.worker_profile.name}"
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdm"
-    virtual_name = "ephemeral6"
+  tags {
+    cycloid.io = "true"
+    Name       = "${var.project}-workertemplate-${var.env}"
+    client     = "${var.customer}"
+    env        = "${var.env}"
+    project    = "${var.project}"
+    role       = "workertemplate"
   }
 
-  ephemeral_block_device = {
-    device_name  = "/dev/xvdn"
-    virtual_name = "ephemeral7"
+  tag_specifications {
+    resource_type = "instance"
+
+    tags {
+      cycloid.io = "true"
+      Name       = "${var.project}-worker-${var.env}"
+      client     = "${var.customer}"
+      env        = "${var.env}"
+      project    = "${var.project}"
+      role       = "worker"
+    }
+  }
+
+  tag_specifications {
+    resource_type = "volume"
+
+    tags {
+      cycloid.io = "true"
+      Name       = "${var.project}-worker-${var.env}"
+      client     = "${var.customer}"
+      env        = "${var.env}"
+      project    = "${var.project}"
+      role       = "worker"
+    }
+  }
+
+  block_device_mappings {
+    device_name = "xvda"
+
+    ebs {
+      volume_size           = "${var.worker_disk_size}"
+      volume_type           = "${var.worker_disk_type}"
+      delete_on_termination = true
+    }
+  }
+
+  block_device_mappings {
+    device_name  = "/dev/xvdf"
+    virtual_name = "container_datas"
+
+    ebs {
+      volume_size           = "${var.worker_volume_disk_size}"
+      volume_type           = "${var.worker_volume_disk_type}"
+      delete_on_termination = true
+    }
   }
 }
 
@@ -127,7 +228,10 @@ resource "aws_cloudformation_stack" "worker" {
       "Properties": {
         "AvailabilityZones": ${jsonencode(var.zones)},
         "VPCZoneIdentifier": ${jsonencode(var.public_subnets_ids)},
-        "LaunchConfigurationName": "${aws_launch_configuration.worker.name}",
+        "LaunchTemplate": {
+            "LaunchTemplateId": "${aws_launch_template.worker.id}",
+            "Version" : "${aws_launch_template.worker.latest_version}"
+        },
         "MaxSize": "${var.worker_asg_max_size}",
         "DesiredCapacity" : "${var.worker_count}",
         "MinSize": "${var.worker_asg_min_size}",
