@@ -197,7 +197,7 @@ jobs:
           path: "stack"
       params:
         SCHEDULER_API_ADDRESS: ((scheduler_api_address))
-        CONFIG_PATH: external-worker/ansible
+        CONFIG_PATH: ((external-worker_config_ansible_path))
         STACK_PATH: ansible
         EXTRA_ANSIBLE_VARS:
             concourse_tsa_port: ((scheduler_port))
@@ -240,7 +240,7 @@ jobs:
           - name: ((project))-stack-terraform
             path: "stack"
         params:
-          CONFIG_PATH: ((project))/terraform/((env))
+          CONFIG_PATH: ((external-worker_config_terraform_path))
           STACK_PATH: terraform
 
       - *extract-vars
@@ -280,7 +280,7 @@ jobs:
           - name: ((project))-stack-terraform
             path: "stack"
         params:
-          CONFIG_PATH: ((project))/terraform/((env))
+          CONFIG_PATH: ((external-worker_config_terraform_path))
           STACK_PATH: terraform
 
       - *extract-vars
@@ -327,7 +327,7 @@ jobs:
           - name: ((project))-stack-terraform
             path: "stack"
         params:
-          CONFIG_PATH: ((project))/terraform/((env))
+          CONFIG_PATH: ((external-worker_config_terraform_path))
           STACK_PATH: terraform
 
       - *extract-vars
