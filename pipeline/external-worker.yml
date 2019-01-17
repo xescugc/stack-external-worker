@@ -128,7 +128,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cycloid-community-catalog/stack-external-worker
-    branch: master
+    branch: ((external-worker_stack_git_branch))
     check_every: 2m
     paths:
       - terraform/*
@@ -149,7 +149,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cycloid-community-catalog/stack-external-worker
-    branch: master
+    branch: ((external-worker_stack_git_branch))
     check_every: 2m
     paths:
       - ansible/*
