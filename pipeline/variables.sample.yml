@@ -23,6 +23,9 @@ external-worker_config_git_repository: ssh://APKAJ5QY5LYZNMX5
 external-worker_config_git_branch: config
 external-worker_config_git_key: ((git_codecommit_readonly.ssh_key))
 
+external-worker_config_ansible_path: ($ project $)/ansible
+external-worker_config_terraform_path: ($ project $)/terraform/($ environment $)
+
 packer_ansible_version: "2.4.3"
 
 # Override the path of the key located in Cycloid creds manager.
