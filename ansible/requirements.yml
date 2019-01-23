@@ -32,3 +32,9 @@
   version: master
   name: nickhammond.ansible-logrotate
   scm: git
+
+  #- src: https://github.com/transferwise/ansible-ebs-automatic-nvme-mapping
+- src: https://github.com/cycloidio/ansible-ebs-automatic-nvme-mapping
+  version: master
+  name: transferwise.ebs-automatic-nvme-mapping
+  scm: git

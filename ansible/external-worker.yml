@@ -18,6 +18,10 @@
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
     - {role: geerlingguy.docker, tags: docker}
+    - role: transferwise.ebs-automatic-nvme-mapping
+      tags:
+        - nvme
+
     # Create var-lib-docker.mount
     - role: cycloid.systemd
       systemd_type: mount

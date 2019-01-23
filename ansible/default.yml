@@ -1,6 +1,7 @@
 ---
 
 var_lib_docker_device: /dev/xvdf
+nvme_mapping_run: false
 
 concourse_worker: yes
 # Don't start as we don't want worker to start during the build
