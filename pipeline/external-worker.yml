@@ -126,20 +126,20 @@ resources:
 # The Terraform stack (will be merged with the config)
 - name: ((project))-stack-terraform
   type: git
+  check_every: 2m
   source:
     uri: https://github.com/cycloid-community-catalog/stack-external-worker
     branch: ((external-worker_stack_git_branch))
-    check_every: 2m
     paths:
       - terraform/*
 
 # The Terraform config (will be merged with the stack)
 - name: ((project))-config-terraform
   type: git
+  check_every: 2m
   source:
     uri: ((external-worker_config_git_repository))
     branch: ((external-worker_config_git_branch))
-    check_every: 2m
     private_key: ((external-worker_config_git_key))
     paths:
       - ((project))/terraform/((env))/*
@@ -147,20 +147,20 @@ resources:
 # The Ansible stack (will be merged with the config)
 - name: ((project))-stack-ansible
   type: git
+  check_every: 2m
   source:
     uri: https://github.com/cycloid-community-catalog/stack-external-worker
     branch: ((external-worker_stack_git_branch))
-    check_every: 2m
     paths:
       - ansible/*
 
 # The Ansible config (will be merged with the stack)
 - name: ((project))-config-ansible
   type: git
+  check_every: 2m
   source:
     uri: ((external-worker_config_git_repository))
     branch: ((external-worker_config_git_branch))
-    check_every: 2m
     private_key: ((external-worker_config_git_key))
     paths:
       - ((project))/ansible/*
