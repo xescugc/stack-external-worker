@@ -32,7 +32,7 @@ resource "aws_security_group" "worker" {
 }
 
 resource "aws_launch_template" "worker" {
-  name_prefix = "worker_${var.env}_version_"
+  name_prefix = "${var.project}_${var.env}_version_"
 
   image_id      = "${data.aws_ami.worker.id}"
   instance_type = "${var.worker_type}"
@@ -127,7 +127,7 @@ resource "aws_launch_template" "worker" {
 
 # if needed, define the same template without spot instance
 resource "aws_launch_template" "worker_ondemand" {
-  name_prefix = "worker_ondemand_${var.env}_version_"
+  name_prefix = "${var.project}_ondemand_${var.env}_version_"
 
   image_id      = "${data.aws_ami.worker.id}"
   instance_type = "${var.worker_type}"
