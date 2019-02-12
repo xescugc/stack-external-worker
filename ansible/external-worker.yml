@@ -15,6 +15,39 @@
     - "default.yml"
     - [ "{{ env }}-worker.yml", "empty.yml" ]
 
+  pre_tasks:
+
+    - name: Found local disk
+      find:
+        paths: /dev
+        file_type: any
+        patterns: "local0,xvdg"
+      register: dev_files
+      when: use_local_device|bool == true
+      tags:
+       - notforbuild
+
+    - name: Set local device name
+      set_fact:
+        var_lib_docker_device: "{{ dev_files.files[0].path }}"
+      no_log: True
+      when: use_local_device|bool == true and dev_files.files
+      tags:
+       - notforbuild
+
+    # Symlink are defined for nvme and systemd mount doesnt accept it
+    - name: Get the real name of device, not symlink
+      shell: "readlink -f {{ var_lib_docker_device }}"
+      register: real_device
+      tags:
+       - notforbuild
+
+    - name: Set real name of device
+      set_fact:
+        var_lib_docker_device: "{{ real_device.stdout }}"
+      tags:
+       - notforbuild
+
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
     - {role: geerlingguy.docker, tags: docker}
@@ -28,6 +61,9 @@
       systemd_mount_type: btrfs
       systemd_mount_device: "{{var_lib_docker_device}}"
       systemd_mount_mountpoint: /var/lib/docker
+      tags:
+       - notforbuild
+
     - role: cycloid.systemd
       systemd_type: dropin
       systemd_dropin_service_name: "docker"
@@ -37,6 +73,9 @@
         - "[Unit]"
         - "After=var-lib-docker.mount"
         - "Requires=var-lib-docker.mount"
+      tags:
+       - notforbuild
+
     - role: cycloid.systemd
       systemd_type: dropin
       systemd_dropin_service_name: "concourse-worker"
@@ -46,6 +85,8 @@
         - "[Unit]"
         - "After=var-lib-docker.mount"
         - "Requires=var-lib-docker.mount"
+      tags:
+       - notforbuild
 
     - role: cycloid.concourse
       tags:
@@ -86,6 +127,14 @@
         group: root
         mode: 0644
       with_items: "{{ sysctl_configs }}"
+
+    # Ensure docker use the good mounted fs
+    - name: restart service docker
+      systemd:
+        name: docker
+        state: restarted
+      tags:
+       - notforbuild
 
     # Ensure worker is started and configured at first boot
     - name: configure worker service | concourse

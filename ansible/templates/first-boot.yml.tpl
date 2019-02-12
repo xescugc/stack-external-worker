@@ -7,6 +7,8 @@
     ami_hostname: "{{ ansible_hostname }}"
     ami_ip_address: "{{ ansible_eth0.ipv4.address }}"
     var_lib_docker_device: "{{var_lib_docker_device}}"
+    use_local_device: "{{use_local_device}}"
+
 {% raw %}
     ami_role: "{{ role }}"
     ami_project: "{{ project }}"
@@ -26,6 +28,21 @@
        resource: '{{ ansible_ec2_instance_id }}'
        state: list
      register: ec2_tags
+
+   # override var_lib_docker_device by local if needed
+   - name: found local disk
+     find:
+       paths: /dev
+       file_type: any
+       patterns: "local0,xvdg"
+     register: dev_files
+     when: use_local_device|bool == true
+
+   - name: get device name
+     set_fact:
+       var_lib_docker_device: "{{ dev_files.files[0].path }}"
+     no_log: True
+     when: use_local_device|bool == true and dev_files.files
 
    - name: "Set facts with hostname"
      set_fact: ansible_hostname="{{ ami_project|lower }}-{{ ami_role|lower }}-{{ ami_env|lower }}-{{ ansible_ec2_instance_id }}"
@@ -62,10 +79,11 @@
      with_items: "{{ relics_ip_address.stdout_lines }}"
 
    - name: "volume - Check if persistent device need to be initialized"
-     command: "file -s {{var_lib_docker_device}}"
+     command: "file -s {{var_lib_docker_device}} --dereference"
      ignore_errors: True
      register: initiate_volume_device
-     failed_when: "'{{var_lib_docker_device}}: data' != initiate_volume_device.stdout"
+     failed_when: "'BTRFS Filesystem' in initiate_volume_device.stdout"
+     #failed_when: "': data' not in initiate_volume_device.stdout"
 
    - name: "volume - Format persistent volume in btrfs"
      command: "mkfs.btrfs -L ephemeral0 {{var_lib_docker_device}}"

@@ -1,6 +1,10 @@
 ---
 
+# Default ebs to use
 var_lib_docker_device: /dev/xvdf
+# if true, search to use /dev/xvdg or /dev/local0. If not found keep the var_lib_docker_device
+use_local_device: false
+
 nvme_mapping_run: false
 
 concourse_worker: yes
