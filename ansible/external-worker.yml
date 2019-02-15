@@ -128,11 +128,35 @@
         mode: 0644
       with_items: "{{ sysctl_configs }}"
 
-    # Ensure docker use the good mounted fs
-    - name: restart service docker
+    # Ensure docker use the good mounted fs and cleanned
+    - name: Stop service docker
       systemd:
         name: docker
-        state: restarted
+        state: stopped
+      tags:
+       - notforbuild
+
+    - name: Clean /var/lib/docker
+      file:
+        state: absent
+        path: "/var/lib/docker"
+      tags:
+       - notforbuild
+
+    - name: Create /var/lib/docker
+      file:
+        path: /var/lib/docker
+        state: directory
+        owner: root
+        group: root
+        mode: 0711
+      tags:
+       - notforbuild
+
+    - name: Start service docker
+      systemd:
+        name: docker
+        state: started
       tags:
        - notforbuild
 
