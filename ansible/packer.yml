@@ -8,6 +8,20 @@
     - "default.yml"
     - [ "{{ env }}-worker.yml", "empty.yml" ]
   tasks:
+
+    - name: not mount xvdg by cloudinit
+      blockinfile:
+        path: /etc/cloud/cloud.cfg
+        block: |
+          mounts:
+          - [ ephemeral0, null ]
+          fs_setup:
+             - label: ephemeral0
+               filesystem: 'btrfs'
+               device: 'ephemeral0'
+               partition: 'none'
+               overwrite: True
+
     - template:
         src: first-boot.yml.tpl
         dest: /home/admin/first-boot.yml
