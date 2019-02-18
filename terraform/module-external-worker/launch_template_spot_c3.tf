@@ -19,6 +19,7 @@ resource "aws_launch_template" "worker_c3" {
 
   network_interfaces {
     associate_public_ip_address = "${var.worker_associate_public_ip_address}"
+    delete_on_termination = true
 
     security_groups = ["${compact(list(
         "${var.bastion_sg_allow}",
