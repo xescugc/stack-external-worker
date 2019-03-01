@@ -12,6 +12,7 @@ concourse_worker: yes
 concourse_worker_name: "$(hostname)"
 concourse_service_enabled: no
 concourse_worker_options: |
+  --ephemeral \
   --garden-network-pool 10.254.0.0/16 \
   --garden-max-containers 1024 \
   --garden-log-level=error \
