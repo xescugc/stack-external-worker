@@ -20,7 +20,7 @@ concourse_worker_options: |
   --garden-assets-dir=/var/lib/docker/garden_assets/ \
   --garden-depot=/var/lib/docker/garden_depot \
   --baggageclaim-volumes=/var/lib/docker/baggageclaim_volumes \
-  --baggageclaim-driver=btrfs | tee -a /var/log/concourse-worker.log
+  --baggageclaim-driver=btrfs 2>&1 | tee -a /var/log/concourse-worker.log ; exit ${PIPESTATUS[0]}
 
 #concourse_worker_tag: "foo"
 #concourse_worker_team: "bar"
