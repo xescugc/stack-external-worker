@@ -1,10 +1,14 @@
 # Temporarly create a c3 template to simplify rollback if spot type are not available in the region
 
+variable "worker_type_c3" {
+  default = "c3.2xlarge"
+}
+
 resource "aws_launch_template" "worker_c3" {
   name_prefix = "${var.project}_c3_${var.env}_version_"
 
   image_id      = "${data.aws_ami.worker.id}"
-  instance_type = "c3.2xlarge"
+  instance_type = "${var.worker_type_c3}"
   user_data     = "${base64encode(data.template_file.user_data_worker.rendered)}"
   key_name      = "${var.keypair_name}"
 
@@ -19,7 +23,7 @@ resource "aws_launch_template" "worker_c3" {
 
   network_interfaces {
     associate_public_ip_address = "${var.worker_associate_public_ip_address}"
-    delete_on_termination = true
+    delete_on_termination       = true
 
     security_groups = ["${compact(list(
         "${var.bastion_sg_allow}",
