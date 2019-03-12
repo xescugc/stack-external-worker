@@ -49,8 +49,8 @@ resource "aws_cloudformation_stack" "worker" {
         "AvailabilityZones": ${jsonencode(var.zones)},
         "VPCZoneIdentifier": ${jsonencode(var.public_subnets_ids)},
         "LaunchTemplate": {
-            "LaunchTemplateId": "${aws_launch_template.worker_c3.id}",
-            "Version" : "${aws_launch_template.worker_c3.latest_version}"
+            "LaunchTemplateId": "${aws_launch_template.worker_c5.id}",
+            "Version" : "${aws_launch_template.worker_c5.latest_version}"
         },
         "MaxSize": "${var.worker_asg_max_size}",
         "DesiredCapacity" : "${var.worker_count}",
