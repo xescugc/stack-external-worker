@@ -57,6 +57,7 @@ variable "vpc_id" {}
 # worker
 #
 variable "worker_count" {}
+
 variable "worker_spot_price" {}
 
 variable "worker_extra_args" {
@@ -77,6 +78,18 @@ variable "worker_volume_disk_size" {
 
 variable "worker_volume_disk_type" {
   default = "gp2"
+}
+
+variable "worker_launch_template_profile" {
+  default = "spot"
+}
+
+variable "worker_launch_template_id" {
+  default = ""
+}
+
+variable "worker_launch_template_latest_version" {
+  default = ""
 }
 
 variable "worker_type" {}

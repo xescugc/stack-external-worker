@@ -28,7 +28,16 @@ module "external-worker" {
   worker_volume_disk_size           = 80
   worker_volume_disk_type           = "gp2"
   worker_ebs_optimized              = true
-  worker_type                       = "m3.medium"
+
+  # Select launch template profile to use. Profile available "spot|ondemand"
+  #worker_launch_template_profile    = "spot"
+  # type for "spot" and "ondemand" template profile
+  worker_type                       = "c5d.2xlarge"
+
+  # If you prefer to define your own launch_template
+  #worker_launch_template_id = "${aws_launch_template.worker.id}"
+  #worker_launch_template_latest_version = "${aws_launch_template.worker.latest_version}"
+
   worker_asg_min_size               = 1
   worker_asg_max_size               = 6
   worker_spot_price       = "0.3"

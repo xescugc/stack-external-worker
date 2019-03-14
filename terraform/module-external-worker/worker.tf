@@ -37,6 +37,23 @@ resource "aws_security_group" "worker" {
 
 ###
 
+locals {
+  default_worker_launch_template_id = {
+    "spot"     = "${aws_launch_template.worker.id}"
+    "ondemand" = "${aws_launch_template.worker_ondemand.id}"
+  }
+
+  default_worker_launch_template_latest_version = {
+    "spot"     = "${aws_launch_template.worker.latest_version}"
+    "ondemand" = "${aws_launch_template.worker_ondemand.latest_version}"
+  }
+}
+
+locals {
+  worker_launch_template_id             = "${var.worker_launch_template_id != "" ? var.worker_launch_template_id : local.default_worker_launch_template_id[var.worker_launch_template_profile]}"
+  worker_launch_template_latest_version = "${var.worker_launch_template_latest_version != "" ? var.worker_launch_template_latest_version : local.default_worker_launch_template_latest_version[var.worker_launch_template_profile]}"
+}
+
 resource "aws_cloudformation_stack" "worker" {
   name = "${var.project}-worker-${var.env}"
 
@@ -49,8 +66,8 @@ resource "aws_cloudformation_stack" "worker" {
         "AvailabilityZones": ${jsonencode(var.zones)},
         "VPCZoneIdentifier": ${jsonencode(var.public_subnets_ids)},
         "LaunchTemplate": {
-            "LaunchTemplateId": "${aws_launch_template.worker_c5.id}",
-            "Version" : "${aws_launch_template.worker_c5.latest_version}"
+            "LaunchTemplateId": "${local.worker_launch_template_id}",
+            "Version" : "${local.worker_launch_template_latest_version}"
         },
         "MaxSize": "${var.worker_asg_max_size}",
         "DesiredCapacity" : "${var.worker_count}",
