@@ -33,3 +33,31 @@ https://eu-central-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1
 ```
 
 > Internal note to refresh the file on s3 : `aws s3 cp extra/external-worker-aws-cf-template.yaml s3://cycloid-cloudformation/`
+
+
+
+# Troubleshooting
+
+## Test ansible role with molecule
+
+Requires a bucket which contains a build of magento sources and AWS accesskey
+
+virtualenv if needed
+```
+virtualenv    .env  --clear
+source .env/bin/activate
+
+pip install ansible==2.7
+pip install molecule
+pip install docker-py
+```
+
+Run the test
+```
+cd ansible
+
+# Run molecule
+molecule destroy
+molecule converge
+molecule verify
+```
