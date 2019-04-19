@@ -1,5 +1,25 @@
 ---
 
+#
+# Molecule test
+#
+
+- name: Install depends
+  hosts: instance
+  gather_facts: no
+  tasks:
+
+    # Used by molecule in order to create a localhost group to match "hosts: localhost" instead of the real localhost
+    - add_host:
+        name: "{{ inventory_hostname }}"
+        ansible_host: "instance"
+        groups:
+          - localhost
+
+#
+# Playbook
+#
+
 - hosts: localhost
   connection: local
   become: yes
@@ -51,7 +71,7 @@
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
     - {role: geerlingguy.docker, tags: docker}
-    - role: transferwise.ebs-automatic-nvme-mapping
+    - role: cycloid.ebs-automatic-nvme-mapping
       tags:
         - nvme
 
