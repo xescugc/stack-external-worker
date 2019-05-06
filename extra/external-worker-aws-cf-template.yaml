@@ -356,6 +356,12 @@ Resources:
               easy_install pip
               pip install ansible==2.4.3
               pip install awscli
+
+              # Be able to use paris region (https://github.com/boto/boto/issues/3783)
+              pip install --upgrade boto
+
+              echo '[Boto]
+              use_endpoint_heuristics = True' > /etc/boto.cfg
               
               cd /opt/
               git clone https://github.com/cycloid-community-catalog/stack-external-worker
