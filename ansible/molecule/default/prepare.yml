@@ -22,7 +22,7 @@
         state: directory
 
     - name: Create a disk image
-      command: dd if=/dev/zero of=/opt/xvdf.img bs=1M count=1500
+      command: dd if=/dev/zero of=/opt/xvdf.img bs=1M count=2200
 
     # 7: major type loopback
     - name: Create device

@@ -1,4 +1,5 @@
 import os
+import time
 
 import testinfra.utils.ansible_runner
 
@@ -10,6 +11,8 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 def test_generated_files(host):
     # Concourse
     assert host.file("/var/lib/concourse/worker_key").contains('BEGIN RSA PRIVATE KEY...')
+    #wait for worker logs
+    time.sleep( 10 )
     assert host.file("/var/log/concourse-worker.log").contains('...worker.beacon.restarting...')
 
 def test_mount_point(host):
