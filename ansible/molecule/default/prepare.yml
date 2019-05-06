@@ -28,6 +28,10 @@
     - name: Create device
       command: mknod /dev/xvdf -m0660 b 7 0
 
+    - name: xvdf dettach
+      command: losetup --detach /dev/xvdf
+      ignore_errors: yes
+
     - name: Loopback attach
       command: losetup /dev/xvdf /opt/xvdf.img
 
