@@ -1,7 +1,7 @@
 resource "aws_launch_template" "worker" {
   name_prefix = "${var.project}_${var.env}_version_"
 
-  image_id      = "${data.aws_ami.worker.id}"
+  image_id      = "${local.image_id}"
   instance_type = "${var.worker_type}"
   user_data     = "${base64encode(data.template_file.user_data_worker.rendered)}"
   key_name      = "${var.keypair_name}"

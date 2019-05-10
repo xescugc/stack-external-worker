@@ -59,6 +59,10 @@ variable "vpc_id" {}
 #
 variable "worker_count" {}
 
+variable "worker_ami_id" {
+  default = ""
+}
+
 variable "worker_spot_price" {
   default = "0.3"
 }

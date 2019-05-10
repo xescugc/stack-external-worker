@@ -12,10 +12,6 @@ module "external-worker" {
   customer = "${var.customer}"
   #####################################
 
-  #. aws_region: us-east-1
-  #+ Name of the region where the infrastructure is created
-  aws_region = "${var.aws_region}"
-
   #. bastion_sg_allow (optional):
   #+ Amazon source security group ID which will be allowed to connect on Magento front port 22 (ssh)
   bastion_sg_allow         = "${data.terraform_remote_state.infrastructure.($ environment $)_bastion_sg_allow}"
@@ -57,6 +53,10 @@ module "external-worker" {
   # Note : If you prefer to define your own launch_template
   # worker_launch_template_id = "${aws_launch_template.worker.id}"
   # worker_launch_template_latest_version = "${aws_launch_template.worker.latest_version}"
+
+  #. worker_ami_id (optional, string): ""
+  #+ If you don't want to use the builded ami but a specific ami (mainly used for debug).
+  # worker_ami_id              = ""
 
   #. worker_type (optional): c5d.2xlarge
   #+ Type of AWS EC2 worker servers. This will be used for `spot` and `ondemand` launch config templates.

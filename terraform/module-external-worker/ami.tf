@@ -1,4 +1,6 @@
 data "aws_ami" "worker" {
+  count = "${var.worker_ami_id == "" ? 1 : 0}"
+
   most_recent = true
 
   filter {
@@ -22,4 +24,8 @@ data "aws_ami" "worker" {
   }
 
   owners = ["self"]
+}
+
+locals {
+  image_id = "${var.worker_ami_id != "" ? var.worker_ami_id : join("", data.aws_ami.worker.*.id)}"
 }

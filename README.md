@@ -74,20 +74,20 @@ In order to run this task, couple elements are required within the infrastructur
 
 |Name|Description|Type|Default|Required|
 |---|---|:---:|:---:|:---:|
-|`aws_region`|Name of the region where the infrastructure is created|`-`|`us-east-1`|`False`|
 |`bastion_sg_allow`|Amazon source security group ID which will be allowed to connect on Magento front port 22 (ssh)|`-`|``|`False`|
 |`keypair_name`|SSH keypair name to use to deploy ec2 instances|`-`|`cycloid-external-worker`|`False`|
 |`metrics_sg_allow`|Additionnal security group ID to assign to Cycloid workers. Goal is to allow monitoring server to query metrics|`-`|`""`|`False`|
 |`public_subnets_ids`|Amazon public subnets IDs on which create each components.|`array`|``|`True`|
 |`vpc_id`|Amazon VPC id on which create each components.|`-`|``|`True`|
-|`worker_asg_max_size`|Amazon autoscaling group max size configuration|`-`|`6`|`False`|
-|`worker_asg_min_size`|Amazon autoscaling group min size configuration|`-`|`1`|`False`|
+|`worker_ami_id`|If you don't want to use the builded ami but a specific ami (mainly used for debug).|`string`|`""`|`False`|
+|`worker_asg_max_size`|Amazon Auto Scaling Group max size configuration.|`-`|`6`|`False`|
+|`worker_asg_min_size`|Amazon Auto Scaling Group min size configuration.|`-`|`1`|`False`|
 |`worker_count`|Number of Aws EC2 worker server to create.|`-`|``|`True`|
 |`worker_disk_size`|Root disk size in Go of Aws EC2 worker servers.|`-`|`20`|`False`|
 |`worker_ebs_optimized`|Whether the Instance is EBS optimized or not, related to the instance type you choose.|`bool`|`true`|`False`|
 |`worker_launch_template_profile`|Select launch template profile to use. Profile available "spot|ondemand"|`-`|`spot`|`False`|
-|`worker_spot_price`|The maximum hourly price you're willing to pay for the Spot Instances. Linked to instance type|`-`|`0.3`|`False`|
-|`worker_type`|Type of Aws EC2 worker servers. This will be used for "spot" and "ondemand" launch config templates|`-`|`c5d.2xlarge`|`False`|
+|`worker_spot_price`|The maximum hourly price you're willing to pay for the Spot Instances. Linked to instance type.|`-`|`0.3`|`False`|
+|`worker_type`|Type of AWS EC2 worker servers. This will be used for `spot` and `ondemand` launch config templates.|`-`|`c5d.2xlarge`|`False`|
 |`worker_volume_disk_size`|Volume disk size in Go of Aws EC2 worker servers.|`-`|`100`|`False`|
 
 **Outputs**
