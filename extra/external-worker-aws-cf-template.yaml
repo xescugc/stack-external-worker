@@ -124,7 +124,7 @@ Parameters:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-  SSHLocationSecGroup:
+  SSHSecurityGroup:
     Description: Instances from this security group will be allowed to connect using SSH on Cycloid CI workers
     Type: AWS::EC2::SecurityGroup::Id
   MetricsLocationSecGroup:
@@ -590,7 +590,7 @@ Resources:
         FromPort: '22'
         ToPort: '22'
         SourceSecurityGroupId:
-          Ref: SSHLocationSecGroup
+          Ref: SSHSecurityGroup
       VpcId:
         Ref: VpcId
       Tags:
