@@ -82,7 +82,7 @@ ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook ${ANSIBLE_DEPLOYMENT_P
             -e "ec2_tag_env=${ENV}" \
             -e "ec2_tag_project=${PROJECT}" \
             -e "ec2_tag_role=${ROLE}" \
-            --tags="notforbuild" \
+            --tags="runatboot,notforbuild" \
             --connection=local
 DEPLOY_STATUS=${?}
 

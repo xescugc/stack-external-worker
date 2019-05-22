@@ -111,7 +111,10 @@
     - role: cycloid.concourse
       tags:
         - concourse
-    - {role: cycloid.fluentd, tags: fluentd}
+    - role: cycloid.fluentd
+      tags:
+        - fluentd
+        - runatboot
 
   tasks:
     # jq used by user-data to send cloudformation signal
