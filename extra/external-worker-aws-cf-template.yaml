@@ -15,6 +15,11 @@ Parameters:
     Description: Cycloid scheduler port
     Type: String
     Default: 32223
+  AutoScalingGroupName:
+    Description: The name of the Auto Scaling group. This name must be unique per Region per account.
+    Type: String
+    Default: asg-cycloid-workers
+    AllowedPattern: [\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF\r\n\t]
   MinNumberOfWorkers:
     Description: Minimum number of Cycloid workers
     Type: Number
@@ -128,6 +133,23 @@ Parameters:
     Description: The list of SubnetIds in your Virtual Private Cloud (VPC)
     ConstraintDescription: They should be residing in the
       selected Virtual Private Cloud.
+  ScheduledWorkersEnabled:
+    Type: String
+    Description: Activate or deactivate scheduling.
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+    ConstraintDescription: must specify true or false.
+  ScheduledWorkersStart:
+    Type: String
+    Description: Specifying the recurring StartTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
+    Default: "0 20 * * *"
+  ScheduledWorkersStop:
+    Type: String
+    Description: Specifying the recurring EndTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
+    Default: "0 7 * * *"
+
 Mappings:
 # Generate :
 # export regions="us-east-1 us-west-2 us-west-1 eu-west-1 eu-west-2 eu-west-3 eu-central-1 ap-northeast-1 ap-northeast-2 ap-northeast-3 ap-southeast-1 ap-southeast-2 ap-south-1 us-east-2 ca-central-1 sa-east-1 cn-north-1 cn-northwest-1"
@@ -163,6 +185,19 @@ Mappings:
       image: ami-0857efbad274a1a89
     sa-east-1:
       image: ami-0bc0ce4ab8b82305c
+  TrueFalse:
+    'Yes':
+      Value: 'True'
+    'No':
+      Value: 'False'
+  EnabledDisabled:
+    'Yes':
+      Value: ENABLED
+    'No':
+      Value: DISABLED
+
+Conditions:
+  EnabledScheduling: !Equals [!Ref ScheduledWorkersEnabled, 'true']
 
 Resources:
   WorkersRole:
@@ -234,7 +269,6 @@ Resources:
                   - "logs:DescribeDestinations"
                   - "logs:CreateLogGroup"
                 Resource: "*"
-
   WorkersInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
@@ -410,11 +444,6 @@ Resources:
     Properties:
       GroupDescription: Enable SSH access and HTTP from the load balancer only
       SecurityGroupIngress:
-#      - IpProtocol: tcp
-#        FromPort: '22'
-#        ToPort: '22'
-#        CidrIp:
-#          Ref: SSHLocation
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
@@ -432,6 +461,7 @@ Resources:
         -
           Key: "project"
           Value: "cycloid-workers"
+<<<<<<< HEAD
   MetricsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -454,3 +484,28 @@ Resources:
         -
           Key: "project"
           Value: "cycloid-workers"
+=======
+
+  ScheduledWorkersStop:
+    Type: AWS::AutoScaling::ScheduledAction
+    Condition: EnabledScheduling
+    Properties:
+      AutoScalingGroupName:
+        Ref: WorkersGroup
+      MaxSize:
+        Ref: MaxNumberOfWorkers
+      MinSize:
+        Ref: MinNumberOfWorkers
+      Recurrence:
+        Ref: ScheduledWorkersStop
+  ScheduledWorkersStart:
+    Type: AWS::AutoScaling::ScheduledAction
+    Condition: EnabledScheduling
+    Properties:
+      AutoScalingGroupName:
+        Ref: AutoScalingGroupName
+      MaxSize: 0
+      MinSize: 0
+      Recurrence:
+        Ref: ScheduledWorkersStart
+>>>>>>> cf: add start/stop option for workers
