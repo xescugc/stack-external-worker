@@ -19,7 +19,6 @@ Parameters:
     Description: The name of the Auto Scaling group. This name must be unique per Region per account.
     Type: String
     Default: asg-cycloid-workers
-    AllowedPattern: [\u0020-\uD7FF\uE000-\uFFFD\uD800\uDC00-\uDBFF\uDFFF\r\n\t]
   MinNumberOfWorkers:
     Description: Minimum number of Cycloid workers
     Type: Number
@@ -141,11 +140,11 @@ Parameters:
       - 'false'
     Default: 'false'
     ConstraintDescription: must specify true or false.
-  ScheduledWorkersStart:
+  ScheduledWorkersStartRecurrence:
     Type: String
     Description: Specifying the recurring StartTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
     Default: "0 20 * * *"
-  ScheduledWorkersStop:
+  ScheduledWorkersStopRecurrence:
     Type: String
     Description: Specifying the recurring EndTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
     Default: "0 7 * * *"
@@ -185,16 +184,6 @@ Mappings:
       image: ami-0857efbad274a1a89
     sa-east-1:
       image: ami-0bc0ce4ab8b82305c
-  TrueFalse:
-    'Yes':
-      Value: 'True'
-    'No':
-      Value: 'False'
-  EnabledDisabled:
-    'Yes':
-      Value: ENABLED
-    'No':
-      Value: DISABLED
 
 Conditions:
   EnabledScheduling: !Equals [!Ref ScheduledWorkersEnabled, 'true']
@@ -461,7 +450,6 @@ Resources:
         -
           Key: "project"
           Value: "cycloid-workers"
-<<<<<<< HEAD
   MetricsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -484,7 +472,6 @@ Resources:
         -
           Key: "project"
           Value: "cycloid-workers"
-=======
 
   ScheduledWorkersStop:
     Type: AWS::AutoScaling::ScheduledAction
@@ -497,15 +484,14 @@ Resources:
       MinSize:
         Ref: MinNumberOfWorkers
       Recurrence:
-        Ref: ScheduledWorkersStop
+        Ref: ScheduledWorkersStopRecurrence
   ScheduledWorkersStart:
     Type: AWS::AutoScaling::ScheduledAction
     Condition: EnabledScheduling
     Properties:
       AutoScalingGroupName:
-        Ref: AutoScalingGroupName
+        Ref: WorkersGroup
       MaxSize: 0
       MinSize: 0
       Recurrence:
-        Ref: ScheduledWorkersStart
->>>>>>> cf: add start/stop option for workers
+        Ref: ScheduledWorkersStartRecurrence
