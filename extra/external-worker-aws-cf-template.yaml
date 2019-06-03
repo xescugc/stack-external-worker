@@ -105,6 +105,18 @@ Parameters:
     - cc2.8xlarge
     - cg1.4xlarge
     ConstraintDescription: must be a valid EC2 instance type.
+  InstanceSpotPriceEnabled:
+    Type: String
+    Description: Activate or deactivate spot instances.
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+    ConstraintDescription: must specify true or false.
+  InstanceSpotPrice:
+    Description: The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price.
+    Type: String
+    Default: "0.05"
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
@@ -187,6 +199,8 @@ Mappings:
 
 Conditions:
   EnabledScheduling: !Equals [!Ref ScheduledWorkersEnabled, 'true']
+  EnabledSpotInstances: !Equals [!Ref InstanceSpotPriceEnabled, 'true']
+  DisabledSpotInstances: !Equals [!Ref InstanceSpotPriceEnabled, 'false']
 
 Resources:
   WorkersRole:
@@ -258,6 +272,7 @@ Resources:
                   - "logs:DescribeDestinations"
                   - "logs:CreateLogGroup"
                 Resource: "*"
+
   WorkersInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
@@ -265,13 +280,17 @@ Resources:
       Roles:
         -
           Ref: "WorkersRole"
+
   WorkersGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
         Ref: Subnets
       LaunchConfigurationName:
-        Ref: LaunchConfig
+        Fn::If:
+          - EnabledSpotInstances
+          - Ref: LaunchConfigSpotPrice
+          - Ref: LaunchConfig
       MinSize:
         Ref: MinNumberOfWorkers
       MaxSize:
@@ -299,8 +318,10 @@ Resources:
         MaxBatchSize: '1'
         PauseTime: PT15M
         WaitOnResourceSignals: 'true'
+
   LaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
+    Condition: DisabledSpotInstances
     Properties:
       KeyName:
         Ref: KeyName
@@ -323,7 +344,135 @@ Resources:
               Ref: VolumeSize
             VolumeType: "gp2"
             DeleteOnTermination: "true"
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - ''
+          - - "#!/bin/bash -xe\n"
 
+            - "export STACK_NAME="
+            - Ref: AWS::StackId
+            - "\n"
+
+            - "export SCHEDULER_API_ADDRESS='"
+            - Ref: SchedulerApiAddress
+            - "'\n"
+
+            - "export SCHEDULER_HOST="
+            - Ref: SchedulerHost
+            - "\n"
+
+            - "export SCHEDULER_PORT="
+            - Ref: SchedulerPort
+            - "\n"
+
+            - "export TSA_PUBLIC_KEY='"
+            - Ref: TsaPublicKey
+            - "'\n"
+
+            - "export WORKER_KEY='"
+            - Ref: WorkerKey
+            - "'\n"
+
+            - "export TEAM_ID="
+            - Ref: TeamId
+            - "\n"
+
+            - |
+              export LOG_FILE="/var/log/user-data.log"
+              exec &> >(tee -a ${LOG_FILE})
+
+              function finish {
+                  if [ $? -eq 0 ]; then
+                      echo "cloudformation signal-resource SUCCESS"
+                      aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status SUCCESS
+                  else
+                      set +e
+                      echo "cloudformation signal-resource FAILURE"
+                      if ! [ -f "/tmp/keeprunning" ]; then
+                          aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status FAILURE
+                          sleep 60
+                          halt -p
+                      fi
+                  fi
+              }
+              trap finish EXIT
+              echo "### starting setup of cycloid worker"
+              apt-get update
+              apt-get install -y git python-setuptools curl jq
+              easy_install pip
+              pip install ansible==2.4.3
+              pip install awscli
+
+              # Be able to use paris region (https://github.com/boto/boto/issues/3783)
+              pip install --upgrade boto
+
+              echo '[Boto]
+              use_endpoint_heuristics = True' > /etc/boto.cfg
+
+              cd /opt/
+              git clone https://github.com/cycloid-community-catalog/stack-external-worker
+              cd stack-external-worker/ansible
+
+              export HOME=/root
+              export AWS_DEFAULT_REGION=$(curl -sL http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
+              export AWS_UNIQUE_ID=$(curl -L http://169.254.169.254/latest/meta-data/instance-id)
+
+              export VERSION=$(curl -sL "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
+
+              cat >> prod-worker.yml <<EOF
+              concourse_version: "${VERSION}"
+              concourse_tsa_port: "$SCHEDULER_PORT"
+              concourse_tsa_host: "$SCHEDULER_HOST"
+              concourse_tsa_public_key: "$TSA_PUBLIC_KEY"
+              concourse_tsa_worker_key_base64: "$WORKER_KEY"
+              concourse_tsa_worker_key: "{{ concourse_tsa_worker_key_base64 | b64decode}}"
+              concourse_worker_team: "$TEAM_ID"
+              nvme_mapping_run: true
+              EOF
+
+              ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
+
+              echo "Run packer.yml"
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local packer.yml
+
+              echo "Run external-worker.yml build steps"
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
+
+              echo "Run /home/admin/first-boot.yml"
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local /home/admin/first-boot.yml --diff
+
+              echo "Run external-worker.yml boot steps"
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
+
+              sleep 60 && systemctl status concourse-worker
+
+  LaunchConfigSpotPrice:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Condition: EnabledSpotInstances
+    Properties:
+      KeyName:
+        Ref: KeyName
+      ImageId:
+        Fn::FindInMap:
+        - AWSRegionArch2AMI
+        - Ref: AWS::Region
+        - image
+      SecurityGroups:
+      - Ref: InstanceSecurityGroup
+      InstanceType:
+        Ref: InstanceType
+      SpotPrice:
+        Ref: InstanceSpotPrice
+      IamInstanceProfile:
+        Ref: "WorkersInstanceProfile"
+      BlockDeviceMappings:
+        - DeviceName: "/dev/xvdf"
+          Ebs:
+            VolumeSize:
+              Ref: VolumeSize
+            VolumeType: "gp2"
+            DeleteOnTermination: "true"
       UserData:
         Fn::Base64:
           Fn::Join:
