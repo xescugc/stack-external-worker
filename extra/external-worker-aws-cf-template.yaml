@@ -401,6 +401,7 @@ Resources:
               apt-get update
               apt-get install -y git python-setuptools curl jq
               easy_install pip
+              pip install -U cryptography
               pip install ansible==2.4.3
               pip install awscli
 
