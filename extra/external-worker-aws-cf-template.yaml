@@ -162,47 +162,47 @@ Mappings:
       image: ami-0bc0ce4ab8b82305c
 
 Resources:
-  WorkersRole: 
+  WorkersRole:
     Type: "AWS::IAM::Role"
-    Properties: 
+    Properties:
       #RoleName: "cycloid-workers"
-      AssumeRolePolicyDocument: 
+      AssumeRolePolicyDocument:
         Version: "2012-10-17"
-        Statement: 
-          - 
+        Statement:
+          -
             Effect: "Allow"
-            Principal: 
-              Service: 
+            Principal:
+              Service:
                 - "ec2.amazonaws.com"
-            Action: 
+            Action:
               - "sts:AssumeRole"
       Path: "/"
-      Policies: 
-        - 
+      Policies:
+        -
           PolicyName: "cycloid-workers"
-          PolicyDocument: 
+          PolicyDocument:
             Version: "2012-10-17"
-            Statement: 
-              - 
+            Statement:
+              -
                 Effect: "Allow"
                 Action: "ec2:DescribeTags"
                 Resource: "*"
-        - 
+        -
           PolicyName: "cycloid-workers-cf-signals"
-          PolicyDocument: 
+          PolicyDocument:
             Version: "2012-10-17"
-            Statement: 
-              - 
+            Statement:
+              -
                 Effect: "Allow"
                 Action: "cloudformation:SignalResource"
                 Resource:
                   Ref: AWS::StackId
-        - 
+        -
           PolicyName: "cycloid-workers-cw-logs-push"
-          PolicyDocument: 
+          PolicyDocument:
             Version: "2012-10-17"
-            Statement: 
-              - 
+            Statement:
+              -
                 Effect: "Allow"
                 Action:
                   - "logs:UntagLogGroup"
@@ -212,12 +212,12 @@ Resources:
                   - "logs:DeleteRetentionPolicy"
                   - "logs:CreateLogStream"
                 Resource: "arn:aws:logs:*:*:log-group:cycloid-workers_prod:*"
-        - 
+        -
           PolicyName: "cycloid-workers-cw-logs"
-          PolicyDocument: 
+          PolicyDocument:
             Version: "2012-10-17"
-            Statement: 
-              - 
+            Statement:
+              -
                 Effect: "Allow"
                 Action:
                   - "logs:ListTagsLogGroup"
@@ -232,12 +232,12 @@ Resources:
                   - "logs:CreateLogGroup"
                 Resource: "*"
 
-  WorkersInstanceProfile: 
+  WorkersInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
-    Properties: 
+    Properties:
       Path: "/"
-      Roles: 
-        - 
+      Roles:
+        -
           Ref: "WorkersRole"
   WorkersGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -250,16 +250,16 @@ Resources:
         Ref: MinNumberOfWorkers
       MaxSize:
         Ref: MaxNumberOfWorkers
-      Tags: 
-        - 
+      Tags:
+        -
           Key: "Name"
           Value: "cycloid-workers"
           PropagateAtLaunch: true
-        - 
+        -
           Key: "cycloid.io"
           Value: "true"
           PropagateAtLaunch: true
-        - 
+        -
           Key: "project"
           Value: "cycloid-workers"
           PropagateAtLaunch: true
@@ -287,11 +287,11 @@ Resources:
       - Ref: InstanceSecurityGroup
       InstanceType:
         Ref: InstanceType
-      IamInstanceProfile: 
+      IamInstanceProfile:
         Ref: "WorkersInstanceProfile"
-      BlockDeviceMappings: 
+      BlockDeviceMappings:
         - DeviceName: "/dev/xvdf"
-          Ebs: 
+          Ebs:
             VolumeSize:
               Ref: VolumeSize
             VolumeType: "gp2"
@@ -349,11 +349,12 @@ Resources:
                       fi
                   fi
               }
-              trap finish EXIT 
+              trap finish EXIT
               echo "### starting setup of cycloid worker"
               apt-get update
               apt-get install -y git python-setuptools curl jq
               easy_install pip
+              pip install -U cryptography
               pip install ansible==2.4.3
               pip install awscli
 
@@ -362,7 +363,7 @@ Resources:
 
               echo '[Boto]
               use_endpoint_heuristics = True' > /etc/boto.cfg
-              
+
               cd /opt/
               git clone https://github.com/cycloid-community-catalog/stack-external-worker
               cd stack-external-worker/ansible
@@ -372,7 +373,7 @@ Resources:
               export AWS_UNIQUE_ID=$(curl -L http://169.254.169.254/latest/meta-data/instance-id)
 
               export VERSION=$(curl -sL "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
-              
+
               cat >> prod-worker.yml <<EOF
               concourse_version: "${VERSION}"
               concourse_tsa_port: "$SCHEDULER_PORT"
@@ -383,7 +384,7 @@ Resources:
               concourse_worker_team: "$TEAM_ID"
               nvme_mapping_run: true
               EOF
-              
+
               ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
 
               echo "Run packer.yml"
@@ -417,13 +418,13 @@ Resources:
           Ref: SSHLocationSecGroup
       VpcId:
         Ref: VpcId
-      Tags: 
-        - 
+      Tags:
+        -
           Key: "Name"
           Value: "cycloid-workers"
-        - 
+        -
           Key: "cycloid.io"
           Value: "true"
-        - 
+        -
           Key: "project"
           Value: "cycloid-workers"
