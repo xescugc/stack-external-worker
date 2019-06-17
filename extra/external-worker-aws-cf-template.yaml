@@ -108,6 +108,9 @@ Parameters:
   SSHLocationSecGroup:
     Description: Instances from this security group will be allowed to connect using SSH on Cycloid workers
     Type: AWS::EC2::SecurityGroup::Id
+  MetricsLocationSecGroup:
+    Description: Instances from this security group will be allowed to read metrics endpoint on Cycloid workers
+    Type: AWS::EC2::SecurityGroup::Id
 #  SSHLocation:
 #    Description: The IP address range that can be used to SSH to the EC2 instances
 #    Type: String
@@ -285,6 +288,7 @@ Resources:
         - image
       SecurityGroups:
       - Ref: InstanceSecurityGroup
+      - Ref: MetricsSecurityGroup
       InstanceType:
         Ref: InstanceType
       IamInstanceProfile:
@@ -397,7 +401,7 @@ Resources:
               ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local /home/admin/first-boot.yml --diff
 
               echo "Run external-worker.yml boot steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild,telegraf
 
               sleep 60 && systemctl status concourse-worker
 
@@ -416,6 +420,28 @@ Resources:
         ToPort: '22'
         SourceSecurityGroupId:
           Ref: SSHLocationSecGroup
+      VpcId:
+        Ref: VpcId
+      Tags:
+        -
+          Key: "Name"
+          Value: "cycloid-workers"
+        -
+          Key: "cycloid.io"
+          Value: "true"
+        -
+          Key: "project"
+          Value: "cycloid-workers"
+  MetricsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow metrics server to collect metrics
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '9100'
+        ToPort: '9100'
+        SourceSecurityGroupId:
+          Ref: MetricsLocationSecGroup
       VpcId:
         Ref: VpcId
       Tags:
