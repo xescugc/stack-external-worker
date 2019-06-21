@@ -114,9 +114,12 @@ Parameters:
     Default: 'false'
     ConstraintDescription: must specify true or false.
   InstanceSpotPrice:
-    Description: The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price.
+    Description: |
+      The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price.
+      You can find more information about the pricing here: https://aws.amazon.com/ec2/spot/pricing/.
     Type: String
     Default: "0.05"
+    ConstraintDescription: If the InstanceSpotPriceEnabled variable is true, you must specify the maximum hourly price to be paid.
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
