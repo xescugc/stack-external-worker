@@ -18,7 +18,7 @@ Parameters:
   AutoScalingGroupName:
     Description: The name of the Auto Scaling group. This name must be unique per Region per account.
     Type: String
-    Default: asg-cycloid-workers
+    Default: asg-cycloid-ci-workers
   MinNumberOfWorkers:
     Description: Minimum number of Cycloid CI workers
     Type: Number
@@ -118,7 +118,7 @@ Parameters:
       The maximum hourly price to be paid for any Spot Instance launched to fulfill the request. Spot Instances are launched when the price you specify exceeds the current Spot market price.
       You can find more information about the pricing here: https://aws.amazon.com/ec2/spot/pricing/.
     Type: String
-    Default: "0.05"
+    Default: "0.5"
     ConstraintDescription: If the InstanceSpotPriceEnabled variable is true, you must specify the maximum hourly price to be paid.
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
@@ -127,7 +127,7 @@ Parameters:
   SSHSecurityGroup:
     Description: Instances from this security group will be allowed to connect using SSH on Cycloid CI workers
     Type: AWS::EC2::SecurityGroup::Id
-  MetricsLocationSecGroup:
+  MetricsSecGroup:
     Description: Instances from this security group will be allowed to read metrics endpoint on Cycloid workers
     Type: AWS::EC2::SecurityGroup::Id
 #  SSHLocation:
@@ -438,16 +438,16 @@ Resources:
               ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
 
               echo "Run packer.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local packer.yml
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local packer.yml
 
               echo "Run external-worker.yml build steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
 
               echo "Run /home/admin/first-boot.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local /home/admin/first-boot.yml --diff
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local /home/admin/first-boot.yml --diff
 
               echo "Run external-worker.yml boot steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
 
               sleep 60 && systemctl status concourse-worker
 
@@ -577,7 +577,7 @@ Resources:
               ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local /home/admin/first-boot.yml --diff
 
               echo "Run external-worker.yml boot steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild,telegraf
+              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild,telegraf
 
               sleep 60 && systemctl status concourse-worker
 
@@ -612,13 +612,13 @@ Resources:
         FromPort: '9100'
         ToPort: '9100'
         SourceSecurityGroupId:
-          Ref: MetricsLocationSecGroup
+          Ref: MetricsSecGroup
       VpcId:
         Ref: VpcId
       Tags:
         -
           Key: "Name"
-          Value: "cycloid-workers"
+          Value: "cycloid-ci-workers"
         -
           Key: "cycloid.io"
           Value: "true"
