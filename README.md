@@ -112,7 +112,7 @@ Deploy using CloudFormation can be done with this url :
 ```
 https://eu-central-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/create/review
 ?templateURL=https://s3-eu-west-1.amazonaws.com/cycloid-cloudformation/external-worker-aws-cf-template.yaml
-&stackName=cycloid-workers
+&stackName=cycloid-ci-workers
 &param_TeamId=...
 ```
 
