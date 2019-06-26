@@ -464,6 +464,7 @@ Resources:
         - image
       SecurityGroups:
       - Ref: InstanceSecurityGroup
+      - Ref: MetricsSecurityGroup
       InstanceType:
         Ref: InstanceType
       SpotPrice:
