@@ -291,7 +291,7 @@ jobs:
       - put: tfstate
         params:
           env_name: ((project))-((env))
-          run_plan: true
+          plan_run: true
           terraform_source: merged-stack/
           var_files:
               - extracted-vars/terraform.tfvars
@@ -338,7 +338,7 @@ jobs:
       - put: tfstate
         params:
           env_name: ((project))-((env))
-          run_plan: true
+          plan_run: true
           terraform_source: merged-stack/
           var_files:
               - extracted-vars/terraform.tfvars
