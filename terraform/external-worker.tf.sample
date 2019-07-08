@@ -5,7 +5,7 @@ module "external-worker" {
 
   #####################################
   # Do not modify the following lines #
-  source = "module-external-worker"
+  source = "./module-external-worker"
 
   project  = "${var.project}"
   env      = "${var.env}"

@@ -101,8 +101,6 @@ provisioner:
       concourse_version: 4.2.3
       systemd_mount_device: 'LABEL=ephemeral0'
       concourse_tsa_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDm5ihBk0lxCSwGPfKZJutTEQcBFxLJhuxjjNy5Hler+s1yo69RMh3aOlXF2S5/e0u1G5dmgaHAUHKMCpQWwy38wFprNqAWwTyplkuq/B2JhFax+nD0o/o6vKRk6HcAIDQtE+PAQ5sFRNZuAY4Mvg87e9gyFyRxgDNSELH9vA5N/MhD4HztG1kupcU7CJB3QlIokgehfilva8HRCcfNtiC3JZnak2+v5Q6g1jWBmPiQrnBnBiLkI1SxtocPrtByVaveLoL6uUWEjT5nCeKiVoi40a09x2NEu+p5nVV7nRxYxOH11FMXt3zfzPIYMDsl06F3wTkav38FF3WXPROq4aAugRqPVo8TJmoh3KQACQEAF9ERuqrnKnoMYMXvg/pLrbTSBTS4n78OsKPlJo+SBDD+ulXVlvaXdozbxD5cEpRg8SFAbcVZJYgVahg1oXBnYqujz/CnBsJKrwbMtKbU526NKTpiutu5ohE5sYHIfRhBh+YzadjsZ/zL4W8wFFfLDkJr1mhZD/UdBJ8So/Wt6RmNH+KD0mY4JIr/FtuF1oR/hRbpUopjW8XpmLw1TEUK+NofvQLa/qTjW3L6XGOiIle40bUoeJgFmtcq2D+Rl3H3n1JJHL4cViVunc5BXpv52Q6F9PzR29dTTyEcOkSrrBzGVPwpNjPRI1Sg4bWZAfATnQ=="
-
-
     connection: ""
     #skip-tags: molecule-notest
     #vvv: "True"

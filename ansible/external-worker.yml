@@ -49,7 +49,7 @@
 
     - name: Set local device name
       set_fact:
-        var_lib_docker_device: "{{ dev_files.files[0].path }}"
+        var_lib_device: "{{ dev_files.files[0].path }}"
       no_log: True
       when: use_local_device|bool == true and dev_files.files
       tags:
@@ -57,42 +57,36 @@
 
     # Symlink are defined for nvme and systemd mount doesnt accept it
     - name: Get the real name of device, not symlink
-      shell: "readlink -f {{ var_lib_docker_device }}"
+      shell: "readlink -f {{ var_lib_device }}"
       register: real_device
       tags:
        - notforbuild
 
     - name: Set real name of device
       set_fact:
-        var_lib_docker_device: "{{ real_device.stdout }}"
+        var_lib_device: "{{ real_device.stdout }}"
+      tags:
+       - notforbuild
+
+    - name: Get systemd mount name
+      command: "systemd-escape -p --suffix=mount '{{ concourse_work_dir }}'"
+      register: systemd_mount_name
+      check_mode: no
       tags:
        - notforbuild
 
   roles:
     - {role: cycloid.telegraf, tags: telegraf}
-    - {role: geerlingguy.docker, tags: docker}
     - role: cycloid.ebs-automatic-nvme-mapping
       tags:
         - nvme
 
-    # Create var-lib-docker.mount
+    # Create var-lib.mount
     - role: cycloid.systemd
       systemd_type: mount
-      systemd_mount_type: btrfs
-      systemd_mount_device: "{{var_lib_docker_device}}"
-      systemd_mount_mountpoint: /var/lib/docker
-      tags:
-       - notforbuild
-
-    - role: cycloid.systemd
-      systemd_type: dropin
-      systemd_dropin_service_name: "docker"
-      systemd_dropin_name: storage
-      systemd_dropin_priority: "01"
-      systemd_dropin_content:
-        - "[Unit]"
-        - "After=var-lib-docker.mount"
-        - "Requires=var-lib-docker.mount"
+      systemd_mount_type: ext4
+      systemd_mount_device: "{{ var_lib_device }}"
+      systemd_mount_mountpoint: "{{ concourse_work_dir }}"
       tags:
        - notforbuild
 
@@ -103,8 +97,8 @@
       systemd_dropin_priority: "01"
       systemd_dropin_content:
         - "[Unit]"
-        - "After=var-lib-docker.mount"
-        - "Requires=var-lib-docker.mount"
+        - "After={{ systemd_mount_name.stdout }}"
+        - "Requires={{ systemd_mount_name.stdout }}"
       tags:
        - notforbuild
 
@@ -123,23 +117,6 @@
         name: jq
         state: present
 
-    # Configure docker storage as btrfs. (Better performance for concourse using also baggage claim BTRFS
-    - name: Install btrfs-tools for docker storage
-      apt:
-        name: btrfs-tools
-        state: present
-
-    - name: override the default docker storage
-      copy:
-        dest: /etc/docker/daemon.json
-        content: |
-          {
-            "storage-driver": "btrfs",
-            "storage-opts": [
-              "btrfs.min_space=2G"
-            ]
-          }
-
     - name: Adding sysctl config
       lineinfile:
         path: /etc/sysctl.d/99-net.conf
@@ -150,38 +127,6 @@
         group: root
         mode: 0644
       with_items: "{{ sysctl_configs }}"
-
-    # Ensure docker use the good mounted fs and cleanned
-    - name: Stop service docker
-      systemd:
-        name: docker
-        state: stopped
-      tags:
-       - notforbuild
-
-    - name: Clean /var/lib/docker
-      file:
-        state: absent
-        path: "/var/lib/docker"
-      tags:
-       - notforbuild
-
-    - name: Create /var/lib/docker
-      file:
-        path: /var/lib/docker
-        state: directory
-        owner: root
-        group: root
-        mode: 0711
-      tags:
-       - notforbuild
-
-    - name: Start service docker
-      systemd:
-        name: docker
-        state: started
-      tags:
-       - notforbuild
 
     # Ensure worker is started and configured at first boot
     - name: configure worker service | concourse
