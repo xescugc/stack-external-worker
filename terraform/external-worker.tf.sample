@@ -34,15 +34,15 @@ module "external-worker" {
 
   #. worker_count (required):
   #+ Number of Aws EC2 worker server to create.
-  worker_count                      = 2
+  worker_count                      = 1
 
   #. worker_disk_size (optional): 20
   #+ Root disk size in Go of Aws EC2 worker servers.
   worker_disk_size                  = 20
 
-  #. worker_volume_disk_size (optional): 100
+  #. worker_volume_disk_size (optional): 130
   #+ Volume disk size in Go of Aws EC2 worker servers.
-  worker_volume_disk_size           = 100
+  worker_volume_disk_size           = 130
 
   #. worker_ebs_optimized (optional, bool): true
   #+ Whether the Instance is EBS optimized or not, related to the instance type you choose.
@@ -72,3 +72,27 @@ module "external-worker" {
   #+ The maximum hourly price you're willing to pay for the Spot Instances. Linked to instance type.
   worker_spot_price       = "0.3"
 }
+
+#
+# Auto Start / Stop
+#
+# Example to stop/start workers every night and weekend (UTC time)
+#/!\ Be carefull when the worker is stopped, pipelines can't execute jobs
+
+#resource "aws_autoscaling_schedule" "auto-stop" {
+#  scheduled_action_name = "${var.customer}-${var.project}-${var.env} stop"
+#  min_size = 0
+#  max_size = -1
+#  desired_capacity = 0
+#  recurrence = "0 21 * * 1-5"
+#  autoscaling_group_name = "${module.external-worker.asg_worker_name}"
+#}
+
+#resource "aws_autoscaling_schedule" "auto-start" {
+#  scheduled_action_name = "${var.customer}-${var.project}-${var.env} start"
+#  min_size = 1
+#  max_size = -1
+#  desired_capacity = 1
+#  recurrence = "0 7 * * 1-5"
+#  autoscaling_group_name = "${module.external-worker.asg_worker_name}"
+#}
