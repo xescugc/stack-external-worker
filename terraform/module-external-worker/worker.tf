@@ -86,8 +86,8 @@ resource "aws_cloudformation_stack" "worker" {
       },
       "UpdatePolicy": {
         "AutoScalingRollingUpdate": {
-          "MinInstancesInService": "0",
-          "MinSuccessfulInstancesPercent": "50",
+          "MinInstancesInService": "${var.worker_launch_template_profile == "spot" ? 0 : 1}",
+          "MinSuccessfulInstancesPercent": "${var.worker_launch_template_profile == "spot" ? 50 : 100}",
           "SuspendProcesses": ["ScheduledActions"],
           "MaxBatchSize": "2",
           "PauseTime": "PT8M",
