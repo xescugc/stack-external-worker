@@ -20,9 +20,10 @@ Parameters:
     Type: String
     Default: asg-cycloid-ci-workers
   MinNumberOfWorkers:
-    Description: Minimum number of Cycloid CI workers
+    Description: Minimum number of Cycloid CI workers. If the InstanceSpotPriceEnabled variable is true, the value will be always 0 but will be used for Desired Capacity.
     Type: Number
     Default: 1
+    ConstraintDescription: If the InstanceSpotPriceEnabled variable is true, the value will be always 0.
   MaxNumberOfWorkers:
     Description: Maximum number of Cycloid CI workers
     Type: Number
@@ -290,8 +291,7 @@ Resources:
     Properties:
       Path: "/"
       Roles:
-        -
-          Ref: "WorkersRole"
+        - Ref: "WorkersRole"
 
   WorkersGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -303,8 +303,13 @@ Resources:
           - EnabledSpotInstances
           - Ref: LaunchConfigSpotPrice
           - Ref: LaunchConfig
-      MinSize:
+      DesiredCapacity:
         Ref: MinNumberOfWorkers
+      MinSize:
+        Fn::If:
+          - EnabledSpotInstances
+          - 0
+          - Ref: MinNumberOfWorkers
       MaxSize:
         Ref: MaxNumberOfWorkers
       Tags:
@@ -644,8 +649,13 @@ Resources:
         Ref: WorkersGroup
       MaxSize:
         Ref: MaxNumberOfWorkers
-      MinSize:
+      DesiredCapacity:
         Ref: MinNumberOfWorkers
+      MinSize:
+        Fn::If:
+          - EnabledSpotInstances
+          - 0
+          - Ref: MinNumberOfWorkers
       Recurrence:
         Ref: ScheduledWorkersStopRecurrence
   ScheduledWorkersStart:
