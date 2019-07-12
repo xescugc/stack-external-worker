@@ -14,7 +14,6 @@
         - lsb-release
         - curl
         - procps
-        - btrfs-tools
 
     - name: Create udev dir for ebs-automatic-nvme-mapping
       file:
@@ -35,5 +34,5 @@
     - name: Loopback attach
       command: losetup /dev/xvdf /opt/xvdf.img
 
-    - name: mkfs.btrfs xvdf
-      command: "mkfs.btrfs -L ephemeral0 /dev/xvdf -f"
+    - name: mkfs.ext4 xvdf
+      command: "mkfs.ext4 -m0 -L ephemeral0 /dev/xvdf"

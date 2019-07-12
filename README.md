@@ -102,8 +102,8 @@ In order to run this task, couple elements are required within the infrastructur
 |---|---|:---:|:---:|:---:|
 |`concourse_worker_tag`|A tag to set during registration to create dedicated workers for some specific jobs. Eg FastStorage, ...|`-`|``|`False`|
 |`concourse_worker_team`|The name of the team that this worker will be assigned to. Team ID is linked to your Cycloid organization.|`-`|``|`False`|
-|`use_local_device`|Use local storage drive from the instance. Default use EBS volume /dev/xvdg or /dev/local0. If not found keep the var_lib_docker_device|`-`|`false`|`False`|
-|`var_lib_docker_device`|Volume device name to use for worker datas|`-`|`/dev/xvdf`|`False`|
+|`use_local_device`|Use local storage drive from the instance. Default use EBS volume /dev/xvdg or /dev/local0. If not found keep the var_lib_device|`-`|`false`|`False`|
+|`var_lib_device`|Volume device name to use for worker datas|`-`|`/dev/xvdf`|`False`|
 
 # Deploy an external worker using Aws CloudFormation stack
 

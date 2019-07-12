@@ -1,8 +1,8 @@
 ---
 
 # Default ebs to use
-var_lib_docker_device: /dev/xvdf
-# if true, search to use /dev/xvdg or /dev/local0. If not found keep the var_lib_docker_device
+var_lib_device: /dev/xvdf
+# if true, search to use /dev/xvdg or /dev/local0. If not found keep the var_lib_device
 use_local_device: false
 
 nvme_mapping_run: false
@@ -17,23 +17,23 @@ concourse_worker_options: |
   --garden-max-containers 1024 \
   --garden-log-level=error \
   --baggageclaim-log-level=error \
-  --garden-assets-dir=/var/lib/docker/garden_assets/ \
-  --garden-depot=/var/lib/docker/garden_depot \
-  --baggageclaim-volumes=/var/lib/docker/baggageclaim_volumes \
-  --baggageclaim-driver=btrfs 2>&1 | tee -a /var/log/concourse-worker.log ; exit ${PIPESTATUS[0]}
+  --garden-assets-dir={{ concourse_work_dir }}/garden_assets/ \
+  --garden-depot={{ concourse_work_dir }}/garden_depot \
+  --baggageclaim-volumes={{ concourse_work_dir }}/baggageclaim_volumes \
+  --baggageclaim-driver=overlay 2>&1 | tee -a /var/log/concourse-worker.log ; exit ${PIPESTATUS[0]}
 
 #concourse_worker_tag: "foo"
 #concourse_worker_team: "bar"
 
   #--garden-default-grace-time=120s \
-  #--garden-graph=/var/lib/docker/garden_graph \
+  #--garden-graph=/var/lib/concourse/datas/garden_graph \
 
 #--garden-cleanup-process-dirs-on-wait=true
 #--garden-destroy-containers-on-startup=true
 
 
 concourse_install_dir: /var/lib/concourse
-concourse_work_dir: /var/lib/docker/concourse
+concourse_work_dir: /var/lib/concourse/datas
 
 logrotate_scripts:
   - name: concourse-worker
@@ -103,7 +103,6 @@ sysctl_configs:
     value: 2097152
 
   # Max number of inotify instances and watches for a user",
-  # Since dockerd runs as a single user, the default instances value of 128 per user is too low",
   # e.g. uses of inotify: nginx ingress controller, kubectl logs -f",
   - name: fs.inotify.max_user_instances
     value: 8192
