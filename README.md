@@ -145,3 +145,13 @@ molecule destroy
 molecule converge
 molecule verify
 ```
+
+## don't stop a failling worker
+
+If the user-data script fail on boot, the worker is destroyed after 3 min.
+In case of debug, you can avoid termination of worker by creating a `/var/tmp/keeprunning` file.
+
+```
+ssh worker
+touch /var/tmp/keeprunning
+```

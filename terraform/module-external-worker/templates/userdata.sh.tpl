@@ -1,5 +1,25 @@
 #!/bin/bash -v
 
+set -e
+
+function finish {
+    if [ $rc != 0 ]; then
+      echo "cloudformation signal-resource FAILURE" >> $LOG_FILE
+      /usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status FAILURE  >> $LOG_FILE
+
+      echo "[halt] 3 min before shutdown" >> $LOG_FILE
+      sleep 180
+
+      if [ ! -f "/var/tmp/keeprunning" ]; then
+        echo "[halt] halt" >> $LOG_FILE
+        halt -f
+      fi
+      echo "[halt] keeprunning" >> $LOG_FILE
+    fi
+}
+
+trap 'rc=$?; set +e; finish' EXIT
+
 export ENV=${env}
 export PROJECT=${project}
 export ROLE=${role}
@@ -15,13 +35,7 @@ pip install --upgrade boto
 echo '[Boto]
 use_endpoint_heuristics = True' > /etc/boto.cfg
 
-
 bash /home/admin/user-data.sh
 
-if [ $? -eq 0 ]; then
-    echo "cloudformation signal-resource SUCCESS" >> $LOG_FILE
-    /usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status SUCCESS  >> $LOG_FILE
-else
-    echo "cloudformation signal-resource FAILURE" >> $LOG_FILE
-    /usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status FAILURE  >> $LOG_FILE
-fi
+echo "cloudformation signal-resource SUCCESS" >> $LOG_FILE
+/usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status SUCCESS  >> $LOG_FILE
