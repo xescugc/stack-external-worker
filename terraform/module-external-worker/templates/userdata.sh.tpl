@@ -5,7 +5,7 @@ set -e
 function finish {
     if [ $rc != 0 ]; then
       echo "cloudformation signal-resource FAILURE" >> $LOG_FILE
-      /usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status FAILURE  >> $LOG_FILE
+      /usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status FAILURE  2>&1 >> $LOG_FILE
 
       echo "[halt] 3 min before shutdown" >> $LOG_FILE
       sleep 180
@@ -37,5 +37,9 @@ use_endpoint_heuristics = True' > /etc/boto.cfg
 
 bash /home/admin/user-data.sh
 
-echo "cloudformation signal-resource SUCCESS" >> $LOG_FILE
-/usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status SUCCESS  >> $LOG_FILE
+# aws cloudformation signal-resource get return code 255 when CF is not updating (for example on scale up)
+set +e
+/usr/local/bin/aws cloudformation signal-resource --stack-name ${signal_stack_name} --logical-resource-id ${signal_resource_id} --unique-id $${AWS_UNIQUE_ID} --region $${AWS_DEFAULT_REGION} --status SUCCESS  2>&1 >> $LOG_FILE
+
+# ensure last return code is 0
+echo "End" >> $LOG_FILE
