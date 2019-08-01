@@ -173,6 +173,17 @@ Parameters:
     Type: String
     Description: Specifying the recurring EndTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
     Default: "0 7 * * *"
+  CustomerTag:
+    Description: Name of the Cycloid Organization, used as customer variable name
+    Type: String
+  ProjectTag:
+    Description: Name of the project
+    Type: String
+    Default: cycloid-ci-workers
+  EnvironmentTag:
+    Description: Name of the project's environment
+    Type: String
+    Default: prod
 
 Mappings:
 # Generate :
@@ -313,17 +324,23 @@ Resources:
       MaxSize:
         Ref: MaxNumberOfWorkers
       Tags:
-        -
-          Key: "Name"
+        - Key: "Name"
           Value: "cycloid-ci-workers"
           PropagateAtLaunch: true
-        -
-          Key: "cycloid.io"
+        - Key: "cycloid.io"
           Value: "true"
           PropagateAtLaunch: true
-        -
-          Key: "project"
-          Value: "cycloid-ci-workers"
+        - Key: "project"
+          Value:
+            Ref: ProjectTag
+          PropagateAtLaunch: true
+        - Key: "customer"
+          Value:
+            Ref: CustomerTag
+          PropagateAtLaunch: true
+        - Key: "env"
+          Value:
+            Ref: EnvironmentTag
           PropagateAtLaunch: true
     CreationPolicy:
       ResourceSignal:
