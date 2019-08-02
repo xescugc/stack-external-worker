@@ -19,15 +19,11 @@ Parameters:
     Description: The name of the Auto Scaling group. This name must be unique per Region per account.
     Type: String
     Default: asg-cycloid-ci-workers
-  MinNumberOfWorkers:
-    Description: Minimum number of Cycloid CI workers. If the InstanceSpotPriceEnabled variable is true, the value will be always 0 but will be used for Desired Capacity.
+  NumberOfWorkers:
+    Description: Number of Cycloid CI workers. If the InstanceSpotPriceEnabled variable is true, the value will be always 0 but will be used for Desired Capacity.
     Type: Number
     Default: 1
     ConstraintDescription: If the InstanceSpotPriceEnabled variable is true, the value will be always 0.
-  MaxNumberOfWorkers:
-    Description: Maximum number of Cycloid CI workers
-    Type: Number
-    Default: 2
   VolumeSize:
     Description: Size of the EBS volume for Cycloid CI worker
     Type: Number
@@ -322,14 +318,14 @@ Resources:
           - Ref: LaunchConfigSpotPrice
           - Ref: LaunchConfig
       DesiredCapacity:
-        Ref: MinNumberOfWorkers
+        Ref: NumberOfWorkers
       MinSize:
         Fn::If:
           - EnabledSpotInstances
           - 0
-          - Ref: MinNumberOfWorkers
+          - Ref: NumberOfWorkers
       MaxSize:
-        Ref: MaxNumberOfWorkers
+        Ref: NumberOfWorkers
       Tags:
         - Key: "Name"
           Value: "cycloid-ci-workers"
@@ -443,7 +439,7 @@ Resources:
               apt-get install -y git python-setuptools curl jq
               easy_install pip
               pip install -U cryptography
-              pip install ansible==2.4.3
+              pip install ansible==2.4.6
               pip install awscli
 
               # Be able to use paris region (https://github.com/boto/boto/issues/3783)
@@ -574,7 +570,7 @@ Resources:
               apt-get install -y git python-setuptools curl jq
               easy_install pip
               pip install -U cryptography
-              pip install ansible==2.4.3
+              pip install ansible==2.4.6
               pip install awscli
 
               # Be able to use paris region (https://github.com/boto/boto/issues/3783)
@@ -672,14 +668,11 @@ Resources:
       AutoScalingGroupName:
         Ref: WorkersGroup
       MaxSize:
-        Ref: MaxNumberOfWorkers
+        Ref: NumberOfWorkers
       DesiredCapacity:
-        Ref: MinNumberOfWorkers
+        Ref: NumberOfWorkers
       MinSize:
-        Fn::If:
-          - EnabledSpotInstances
           - 0
-          - Ref: MinNumberOfWorkers
       Recurrence:
         Ref: ScheduledWorkersStopRecurrence
   ScheduledWorkersStart:
