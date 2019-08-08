@@ -17,7 +17,7 @@
           - [ ephemeral0, null ]
           fs_setup:
              - label: ephemeral0
-               filesystem: 'ext4'
+               filesystem: '{{ fs_volume_type }}'
                device: 'ephemeral0'
                partition: 'none'
                overwrite: True

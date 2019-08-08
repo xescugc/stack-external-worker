@@ -84,9 +84,10 @@
     # Create var-lib.mount
     - role: cycloid.systemd
       systemd_type: mount
-      systemd_mount_type: ext4
+      systemd_mount_type: "{{ fs_volume_type }}"
       systemd_mount_device: "{{ var_lib_device }}"
       systemd_mount_mountpoint: "{{ concourse_work_dir }}"
+      systemd_mount_options: "{{ fs_volume_options[fs_volume_type]['fs_mount_options'] }}"
       tags:
        - notforbuild
 
@@ -116,6 +117,12 @@
       apt:
         name: jq
         state: present
+
+    - name: Install btrfs-tools for docker storage
+      apt:
+        name: btrfs-tools
+        state: present
+      when: fs_volume_type == "btrfs"
 
     - name: Adding sysctl config
       lineinfile:
