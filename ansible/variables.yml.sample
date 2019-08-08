@@ -4,6 +4,9 @@
 #. var_lib_device (optional): /dev/xvdf
 #+ Volume device name to use for worker datas
 
+#. fs_volume_type (optional): btrfs
+#+ Filesystem used to store concourse datas. Possible values "btrfs|ext4"
+
 #. concourse_worker_tag (optional):
 #+ A tag to set during registration to create dedicated workers for some specific jobs. Eg FastStorage, ...
 

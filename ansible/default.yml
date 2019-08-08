@@ -36,7 +36,7 @@ concourse_worker_options: |
 concourse_install_dir: /var/lib/concourse
 concourse_work_dir: /var/lib/concourse/datas
 
-# Filesystem used to store containers datas. (currently best perf with btrfs). Possible value btrfs|ext4
+# Filesystem used to store concourse datas. (currently best perf with btrfs). Possible values "btrfs|ext4"
 fs_volume_type: btrfs
 
 fs_volume_options:
