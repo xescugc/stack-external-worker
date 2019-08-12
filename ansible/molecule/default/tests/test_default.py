@@ -16,7 +16,7 @@ def test_generated_files(host):
     assert host.file("/var/log/concourse-worker.log").contains('...worker.beacon.restarting...')
 
 def test_mount_point(host):
-    assert host.mount_point("/var/lib/docker").exists
+    assert host.mount_point("/var/lib/concourse/datas").exists
 
 def test_services_running(host):
     fluentd = host.process.filter(user='root', comm='fluentd')

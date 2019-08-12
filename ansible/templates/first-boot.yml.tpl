@@ -8,6 +8,9 @@
     ami_ip_address: "{{ ansible_eth0.ipv4.address }}"
     var_lib_device: "{{var_lib_device}}"
     use_local_device: "{{use_local_device}}"
+    fs_volume_type: "{{fs_volume_type}}"
+    fs_volume_options:
+{{fs_volume_options | to_nice_yaml | indent(8,first=true) }}
 
 {% raw %}
     ami_role: "{{ role }}"
@@ -82,11 +85,10 @@
      command: "file -s {{var_lib_device}} --dereference"
      ignore_errors: True
      register: initiate_volume_device
-     failed_when: "'BTRFS Filesystem' in initiate_volume_device.stdout"
-     #failed_when: "': data' not in initiate_volume_device.stdout"
+     failed_when: "\"{{ fs_volume_options[fs_volume_type]['initiate_volume_stdout'] }}\" in initiate_volume_device.stdout"
 
    - name: "volume - Format persistent volume in ext4"
-     command: "mkfs.ext4 -m0 -L ephemeral0 {{var_lib_device}}"
+     command: "{{ fs_volume_options[fs_volume_type]['mkfs_command'] }} -L ephemeral0 {{var_lib_device}}"
      when: initiate_volume_device|success
 
 {% endraw %}

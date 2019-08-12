@@ -47,19 +47,19 @@ In order to run this task, couple elements are required within the infrastructur
 
 |Name|Description|Type|Default|Required|
 |---|---|:---:|:---:|:---:|
-|`aws_access_key`|Amazon AWS access key for Terraform. see value format [Here](https://docs.cycloid.io/advanced-guide/integrate-and-use-cycloid-credentials-manager.html#vault-in-the-pipeline)|`-`|`((aws.access_key))`|`True`|
+|`aws_access_key`|Amazon AWS access key for Terraform. See value format [Here](https://docs.cycloid.io/advanced-guide/integrate-and-use-cycloid-credentials-manager.html#vault-in-the-pipeline)|`-`|`((aws.access_key))`|`True`|
 |`aws_default_region`|Amazon AWS region to use for Terraform.|`-`|`eu-west-1`|`True`|
-|`aws_secret_key`|Amazon AWS secret key for Terraform. see value format [Here](https://docs.cycloid.io/advanced-guide/integrate-and-use-cycloid-credentials-manager.html#vault-in-the-pipeline)|`-`|`((aws.secret_key))`|`True`|
+|`aws_secret_key`|Amazon AWS secret key for Terraform. See value format [Here](https://docs.cycloid.io/advanced-guide/integrate-and-use-cycloid-credentials-manager.html#vault-in-the-pipeline)|`-`|`((aws.secret_key))`|`True`|
 |`config_ansible_path`|Path of Ansible files in the config git repository|`-`|`($ project $)/ansible`|`True`|
 |`config_git_branch`|Branch of the config git repository.|`-`|`master`|`True`|
 |`config_git_private_key`|SSH key pair to fetch the config git repository.|`-`|`((git_config.ssh_key))`|`True`|
-|`config_git_repository`|Git repository url containing the config of the stack.|`-`|`git@github.com:MyUser/config-external-workers.git`|`True`|
+|`config_git_repository`|Git repository URL containing the config of the stack.|`-`|`git@github.com:MyUser/config-external-workers.git`|`True`|
 |`config_terraform_path`|Path of Terraform files in the config git repository|`-`|`($ project $)/terraform/($ environment $)`|`True`|
 |`customer`|Name of the Cycloid Organization, used as customer variable name.|`-`|`($ organization_canonical $)`|`True`|
 |`debug_public_key`|Public ssh key injected by Packer during the build of the AMI for debug purpose|`-`|`"ssh-rsa ..."`|`False`|
 |`env`|Name of the project's environment.|`-`|`($ environment $)`|`True`|
 |`external_worker_key`|Name of the Cycloid credential containing a public and a private SSH key to configure Cycloid workers.|`cycloid_creds_name`|`cycloid-worker-keys`|`True`|
-|`packer_ansible_version`|Version of ansible used during Packer build to run Ansible playbook|`-`|`"2.4.3"`|`False`|
+|`packer_ansible_version`|Version of ansible used during Packer build to run Ansible playbook|`-`|`"2.4.6"`|`False`|
 |`project`|Name of the project.|`-`|`($ project $)`|`True`|
 |`scheduler_api_address`|URL of the Pipeline scheduler API|`-`|`https://myscheduler.com`|`True`|
 |`scheduler_host`|Host or IP of the Pipeline scheduler|`-`|`"myscheduler.com"`|`True`|
@@ -88,7 +88,7 @@ In order to run this task, couple elements are required within the infrastructur
 |`worker_launch_template_profile`|Select launch template profile to use. Profile available "spot|ondemand"|`-`|`spot`|`False`|
 |`worker_spot_price`|The maximum hourly price you're willing to pay for the Spot Instances. Linked to instance type.|`-`|`0.3`|`False`|
 |`worker_type`|Type of AWS EC2 worker servers. This will be used for `spot` and `ondemand` launch config templates.|`-`|`c5d.2xlarge`|`False`|
-|`worker_volume_disk_size`|Volume disk size in Go of Aws EC2 worker servers.|`-`|`100`|`False`|
+|`worker_volume_disk_size`|Volume disk size in Go of Aws EC2 worker servers.|`-`|`130`|`False`|
 
 **Outputs**
 
@@ -102,6 +102,7 @@ In order to run this task, couple elements are required within the infrastructur
 |---|---|:---:|:---:|:---:|
 |`concourse_worker_tag`|A tag to set during registration to create dedicated workers for some specific jobs. Eg FastStorage, ...|`-`|``|`False`|
 |`concourse_worker_team`|The name of the team that this worker will be assigned to. Team ID is linked to your Cycloid organization.|`-`|``|`False`|
+|`fs_volume_type`|Filesystem used to store concourse datas. Possible values "btrfs|ext4"|`-`|`btrfs`|`False`|
 |`use_local_device`|Use local storage drive from the instance. Default use EBS volume /dev/xvdg or /dev/local0. If not found keep the var_lib_device|`-`|`false`|`False`|
 |`var_lib_device`|Volume device name to use for worker datas|`-`|`/dev/xvdf`|`False`|
 

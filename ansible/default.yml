@@ -5,6 +5,7 @@ var_lib_device: /dev/xvdf
 # if true, search to use /dev/xvdg or /dev/local0. If not found keep the var_lib_device
 use_local_device: false
 
+# Run the mapping/symlink of device via ansible instead of udev. Sould be false if building an ami.
 nvme_mapping_run: false
 
 concourse_worker: yes
@@ -20,7 +21,7 @@ concourse_worker_options: |
   --garden-assets-dir={{ concourse_work_dir }}/garden_assets/ \
   --garden-depot={{ concourse_work_dir }}/garden_depot \
   --baggageclaim-volumes={{ concourse_work_dir }}/baggageclaim_volumes \
-  --baggageclaim-driver=overlay 2>&1 | tee -a /var/log/concourse-worker.log ; exit ${PIPESTATUS[0]}
+  --baggageclaim-driver={{ fs_volume_options[fs_volume_type]['bc_driver'] }} 2>&1 | tee -a /var/log/concourse-worker.log ; exit ${PIPESTATUS[0]}
 
 #concourse_worker_tag: "foo"
 #concourse_worker_team: "bar"
@@ -34,6 +35,25 @@ concourse_worker_options: |
 
 concourse_install_dir: /var/lib/concourse
 concourse_work_dir: /var/lib/concourse/datas
+
+# Filesystem used to store concourse datas. (currently best perf with btrfs). Possible values "btrfs|ext4"
+fs_volume_type: btrfs
+
+fs_volume_options:
+  ext4:
+    # output used to know if persistent device need to be initialized
+    initiate_volume_stdout: 'ext4 filesystem data'
+    # command to format to the good filesystem
+    mkfs_command: 'mkfs.ext4 -m0'
+    # concourse_worker_options baggageclaim-driver
+    bc_driver: 'overlay'
+    # systemd mount option for concourse datas
+    fs_mount_options: 'nobarrier'
+  btrfs:
+    initiate_volume_stdout: 'BTRFS Filesystem'
+    mkfs_command: 'mkfs.btrfs'
+    bc_driver: 'btrfs'
+    fs_mount_options: 'fatal_errors=panic'
 
 logrotate_scripts:
   - name: concourse-worker
@@ -49,7 +69,6 @@ logrotate_scripts:
 cycloid_files_watched:
  - name: concourse-worker
    path: "/var/log/concourse-worker.log"
-
 
 sysctl_configs:
   - name: net.ipv4.ip_forward
