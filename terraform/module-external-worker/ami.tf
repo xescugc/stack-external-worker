@@ -27,5 +27,5 @@ data "aws_ami" "worker" {
 }
 
 locals {
-  image_id = "${var.worker_ami_id != "" ? var.worker_ami_id : join("", data.aws_ami.worker.*.id)}"
+  image_id = "${var.worker_ami_id != "" ? var.worker_ami_id : element(data.aws_ami.worker.*.id, 0)}"
 }

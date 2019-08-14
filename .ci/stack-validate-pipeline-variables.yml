@@ -45,7 +45,12 @@ pipeline_env_vars:
   PIPELINE_TEMPLATE: external-worker.yml
   PIPELINE_VARIABLES: variables.sample.yml
   ORGANIZATION: cycloid-owl
-  PIPELINE_NAME: ci-external-worker-master-validate
+  PIPELINE_NAME: ci-stack-external-worker-master-validate
+
+#. config_ansible_path (required): .ci/ansible
+#+ Path of ansible files in the config git repository
+config_ansible_path: .ci/ansible
+stack_ansible_path: ansible
 
 #. config_terraform_path (required): .ci/terraform
 #+ Path of Terraform files in the config git repository
@@ -68,7 +73,7 @@ env: master
 
 #. project (required): ci-external-worker
 #+ Name of the project.
-project: ci-external-worker
+project: ci-stack-external-worker
 
 #. customer (required): cycloid-owl
 #+ Name of the Cycloid Organization, used as customer variable name.
