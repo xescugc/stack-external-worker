@@ -7,7 +7,7 @@
 resource "aws_security_group" "worker" {
   name        = "${var.project}-worker-${var.env}"
   description = "Front ${var.env} for ${var.project}"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   #  ingress {
   #    from_port       = 80
@@ -22,11 +22,12 @@ resource "aws_security_group" "worker" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags {
-    cycloid.io = "true"
+  tags = {
+    "cycloid.io" = "true"
     Name       = "${var.project}-worker-${var.env}"
-    env        = "${var.env}"
-    project    = "${var.project}"
+    env        = var.env
+    project    = var.project
+    client     = var.customer
     role       = "worker"
   }
 }
@@ -39,19 +40,19 @@ resource "aws_security_group" "worker" {
 
 locals {
   default_worker_launch_template_id = {
-    "spot"     = "${aws_launch_template.worker.id}"
-    "ondemand" = "${aws_launch_template.worker_ondemand.id}"
+    "spot"     = aws_launch_template.worker.id
+    "ondemand" = aws_launch_template.worker_ondemand.id
   }
 
   default_worker_launch_template_latest_version = {
-    "spot"     = "${aws_launch_template.worker.latest_version}"
-    "ondemand" = "${aws_launch_template.worker_ondemand.latest_version}"
+    "spot"     = aws_launch_template.worker.latest_version
+    "ondemand" = aws_launch_template.worker_ondemand.latest_version
   }
 }
 
 locals {
-  worker_launch_template_id             = "${var.worker_launch_template_id != "" ? var.worker_launch_template_id : local.default_worker_launch_template_id[var.worker_launch_template_profile]}"
-  worker_launch_template_latest_version = "${var.worker_launch_template_latest_version != "" ? var.worker_launch_template_latest_version : local.default_worker_launch_template_latest_version[var.worker_launch_template_profile]}"
+  worker_launch_template_id             = var.worker_launch_template_id != "" ? var.worker_launch_template_id : local.default_worker_launch_template_id[var.worker_launch_template_profile]
+  worker_launch_template_latest_version = var.worker_launch_template_latest_version != "" ? var.worker_launch_template_latest_version : local.default_worker_launch_template_latest_version[var.worker_launch_template_profile]
 }
 
 resource "aws_cloudformation_stack" "worker" {
@@ -76,7 +77,7 @@ resource "aws_cloudformation_stack" "worker" {
         "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 600,
         "Tags" : [
-          { "Key" : "Name", "Value" : "${var.project}-worker-${lookup(var.short_region, data.aws_region.current.name)}-${var.env}", "PropagateAtLaunch" : "true" },
+          { "Key" : "Name", "Value" : "${var.project}-worker-${var.short_region[data.aws_region.current.name]}-${var.env}", "PropagateAtLaunch" : "true" },
           { "Key" : "client", "Value" : "${var.customer}", "PropagateAtLaunch" : "true" },
           { "Key" : "env", "Value" : "${var.env}", "PropagateAtLaunch" : "true" },
           { "Key" : "project", "Value" : "${var.project}", "PropagateAtLaunch" : "true" },
@@ -104,11 +105,10 @@ resource "aws_cloudformation_stack" "worker" {
   }
 }
 EOF
+
 }
 
 # Cloudwatch autoscaling
-
-
 # Disable for now as concourse don't really like scale down
 #resource "aws_autoscaling_policy" "worker-scale-up" {
 #  name                   = "${var.project}-worker-scale-up-${var.env}"
@@ -161,4 +161,3 @@ EOF
 #  alarm_description = "This metric monitor ec2 cpu utilization on ${var.project} ${var.env}"
 #  alarm_actions     = ["${aws_autoscaling_policy.worker-scale-down.arn}"]
 #}
-

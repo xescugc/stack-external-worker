@@ -2,19 +2,19 @@
 # of the options
 
 module "external-worker" {
-
   #####################################
   # Do not modify the following lines #
   source = "./module-external-worker"
 
-  project  = "${var.project}"
-  env      = "${var.env}"
-  customer = "${var.customer}"
+  project  = var.project
+  env      = var.env
+  customer = var.customer
+
   #####################################
 
   #. bastion_sg_allow (optional):
   #+ Amazon source security group ID which will be allowed to connect on Magento front port 22 (ssh)
-  bastion_sg_allow         = "${data.terraform_remote_state.infrastructure.($ environment $)_bastion_sg_allow}"
+  bastion_sg_allow         = data.terraform_remote_state.infrastructure.outputs.($ environment $)_bastion_sg_allow
 
   #. keypair_name (requiredl): cycloid-external-worker
   #+ SSH keypair name to use to deploy ec2 instances
@@ -22,15 +22,15 @@ module "external-worker" {
 
   #. metrics_sg_allow (optional): ""
   #+ Additionnal security group ID to assign to Cycloid workers. Goal is to allow monitoring server to query metrics
-  metrics_sg_allow        = "${data.terraform_remote_state.prometheus.($ environment $)_metrics_sg_allow}"
+  metrics_sg_allow        = data.terraform_remote_state.prometheus.outputs.($ environment $)_metrics_sg_allow
 
   #. public_subnets_ids (required, array):
   #+ Amazon public subnets IDs on which create each components.
-  public_subnets_ids      = "${data.terraform_remote_state.infrastructure.($ environment $)_public_subnets}"
+  public_subnets_ids      = data.terraform_remote_state.infrastructure.outputs.($ environment $)_public_subnets
 
   #. vpc_id (required):
   #+ Amazon VPC id on which create each components.
-  vpc_id                  = "${data.terraform_remote_state.infrastructure.($ environment $)_vpc_id}"
+  vpc_id                  = data.terraform_remote_state.infrastructure.outputs.($ environment $)_vpc_id
 
   #. worker_count (required):
   #+ Number of Aws EC2 worker server to create.
