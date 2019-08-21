@@ -1,4 +1,5 @@
-data "aws_region" "current" {}
+data "aws_region" "current" {
+}
 
 variable "bastion_sg_allow" {
   default = ""
@@ -12,12 +13,14 @@ variable "project" {
   default = "external-worker"
 }
 
-variable "customer" {}
+variable "customer" {
+}
 
-variable "env" {}
+variable "env" {
+}
 
 variable "short_region" {
-  type = "map"
+  type = map(string)
 
   default = {
     ap-northeast-1 = "ap-no1"
@@ -40,24 +43,26 @@ variable "keypair_name" {
 }
 
 variable "private_subnets_ids" {
-  type    = "list"
+  type    = list(string)
   default = []
 }
 
 variable "public_subnets_ids" {
-  type = "list"
+  type = list(string)
 }
 
 variable "zones" {
   default = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
 }
 
-variable "vpc_id" {}
+variable "vpc_id" {
+}
 
 #
 # worker
 #
-variable "worker_count" {}
+variable "worker_count" {
+}
 
 variable "worker_ami_id" {
   default = ""

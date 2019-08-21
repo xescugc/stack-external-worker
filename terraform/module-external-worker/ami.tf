@@ -1,5 +1,5 @@
 data "aws_ami" "worker" {
-  count = "${var.worker_ami_id == "" ? 1 : 0}"
+  count = var.worker_ami_id == "" ? 1 : 0
 
   most_recent = true
 
@@ -27,5 +27,5 @@ data "aws_ami" "worker" {
 }
 
 locals {
-  image_id = "${var.worker_ami_id != "" ? var.worker_ami_id : element(data.aws_ami.worker.*.id, 0)}"
+  image_id = var.worker_ami_id != "" ? var.worker_ami_id : element(data.aws_ami.worker.*.id, 0)
 }

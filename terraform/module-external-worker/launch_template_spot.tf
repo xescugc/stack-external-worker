@@ -1,59 +1,61 @@
 resource "aws_launch_template" "worker" {
   name_prefix = "${var.project}_${var.env}_version_"
 
-  image_id      = "${local.image_id}"
-  instance_type = "${var.worker_type}"
-  user_data     = "${base64encode(data.template_file.user_data_worker.rendered)}"
-  key_name      = "${var.keypair_name}"
+  image_id      = local.image_id
+  instance_type = var.worker_type
+  user_data     = base64encode(data.template_file.user_data_worker.rendered)
+  key_name      = var.keypair_name
 
   instance_market_options {
     market_type = "spot"
 
     spot_options {
       spot_instance_type = "one-time"
-      max_price          = "${var.worker_spot_price}"
+      max_price          = var.worker_spot_price
     }
   }
 
   network_interfaces {
-    associate_public_ip_address = "${var.worker_associate_public_ip_address}"
+    associate_public_ip_address = var.worker_associate_public_ip_address
     delete_on_termination       = true
 
-    security_groups = ["${compact(list(
-        "${var.bastion_sg_allow}",
-        "${aws_security_group.worker.id}",
-        "${var.metrics_sg_allow}",
-      ))}"]
+    security_groups = compact(
+      [
+        var.bastion_sg_allow,
+        aws_security_group.worker.id,
+        var.metrics_sg_allow,
+      ],
+    )
   }
 
   lifecycle {
     create_before_destroy = true
   }
 
-  ebs_optimized = "${var.worker_ebs_optimized}"
+  ebs_optimized = var.worker_ebs_optimized
 
   iam_instance_profile {
-    name = "${aws_iam_instance_profile.worker_profile.name}"
+    name = aws_iam_instance_profile.worker_profile.name
   }
 
-  tags {
-    cycloid.io = "true"
+  tags = {
+    "cycloid.io" = "true"
     Name       = "${var.project}-workertemplate-${var.env}"
-    client     = "${var.customer}"
-    env        = "${var.env}"
-    project    = "${var.project}"
+    client     = var.customer
+    env        = var.env
+    project    = var.project
     role       = "workertemplate"
   }
 
   tag_specifications {
     resource_type = "instance"
 
-    tags {
-      cycloid.io = "true"
+    tags = {
+      "cycloid.io" = "true"
       Name       = "${var.project}-worker-${var.env}"
-      client     = "${var.customer}"
-      env        = "${var.env}"
-      project    = "${var.project}"
+      client     = var.customer
+      env        = var.env
+      project    = var.project
       role       = "worker"
     }
   }
@@ -61,12 +63,12 @@ resource "aws_launch_template" "worker" {
   tag_specifications {
     resource_type = "volume"
 
-    tags {
-      cycloid.io = "true"
+    tags = {
+      "cycloid.io" = "true"
       Name       = "${var.project}-worker-${var.env}"
-      client     = "${var.customer}"
-      env        = "${var.env}"
-      project    = "${var.project}"
+      client     = var.customer
+      env        = var.env
+      project    = var.project
       role       = "worker"
     }
   }
@@ -75,8 +77,8 @@ resource "aws_launch_template" "worker" {
     device_name = "xvda"
 
     ebs {
-      volume_size           = "${var.worker_disk_size}"
-      volume_type           = "${var.worker_disk_type}"
+      volume_size           = var.worker_disk_size
+      volume_type           = var.worker_disk_type
       delete_on_termination = true
     }
   }
@@ -86,8 +88,8 @@ resource "aws_launch_template" "worker" {
     virtual_name = "container_datas"
 
     ebs {
-      volume_size           = "${var.worker_volume_disk_size}"
-      volume_type           = "${var.worker_volume_disk_type}"
+      volume_size           = var.worker_volume_disk_size
+      volume_type           = var.worker_volume_disk_type
       delete_on_termination = true
     }
   }
