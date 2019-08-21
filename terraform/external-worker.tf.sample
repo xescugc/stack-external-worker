@@ -51,8 +51,8 @@ module "external-worker" {
   #. worker_launch_template_profile (optional): spot
   #+ Select launch template profile to use. Profile available "spot|ondemand"
   # Note : If you prefer to define your own launch_template
-  # worker_launch_template_id = "${aws_launch_template.worker.id}"
-  # worker_launch_template_latest_version = "${aws_launch_template.worker.latest_version}"
+  # worker_launch_template_id = aws_launch_template.worker.id
+  # worker_launch_template_latest_version = aws_launch_template.worker.latest_version
 
   #. worker_ami_id (optional, string): ""
   #+ If you don't want to use the builded ami but a specific ami (mainly used for debug).
@@ -85,7 +85,7 @@ module "external-worker" {
 #  max_size = -1
 #  desired_capacity = 0
 #  recurrence = "0 21 * * 1-5"
-#  autoscaling_group_name = "${module.external-worker.asg_worker_name}"
+#  autoscaling_group_name = module.external-worker.asg_worker_name
 #}
 
 #resource "aws_autoscaling_schedule" "auto-start" {
@@ -94,5 +94,5 @@ module "external-worker" {
 #  max_size = -1
 #  desired_capacity = 1
 #  recurrence = "0 7 * * 1-5"
-#  autoscaling_group_name = "${module.external-worker.asg_worker_name}"
+#  autoscaling_group_name = module.external-worker.asg_worker_name
 #}
