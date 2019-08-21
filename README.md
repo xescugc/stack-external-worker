@@ -66,7 +66,6 @@ In order to run this task, couple elements are required within the infrastructur
 |`scheduler_port`|Port of the Pipeline scheduler|`-`|`2222`|`True`|
 |`stack_git_branch`|Branch to use on the public stack git repository|`-`|`master`|`True`|
 |`terraform_storage_bucket_name`|AWS S3 bucket name to store terraform remote state file.|`-`|`($ organization_canonical $)-terraform-remote-state`|`True`|
-|`terraform_storage_bucket_path`|AWS S3 bucket path to store terraform remote state file.|`-`|`($ project $)/($ environment $)`|`True`|
 
 ## Terraform
 
