@@ -78,7 +78,7 @@ log "Run code deployment"
 
 ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook ${ANSIBLE_DEPLOYMENT_PLAYBOOK} --diff \
             -e "env=${ENV}" \
-			-e "project=${PROJECT}" \
+            -e "project=${PROJECT}" \
             -e "ec2_tag_env=${ENV}" \
             -e "ec2_tag_project=${PROJECT}" \
             -e "ec2_tag_role=${ROLE}" \

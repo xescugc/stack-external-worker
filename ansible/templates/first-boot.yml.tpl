@@ -25,16 +25,13 @@
    # AWS
    - name: AWS
      block:
-     - name: Gather ec2 facts
-       ec2_facts:
-     - name: Retrieve all tags on an instance
-       ec2_tag:
-         region: '{{ ansible_ec2_placement_region }}'
-         resource: '{{ ansible_ec2_instance_id }}'
-         state: list
-       register: ec2_tags
+     - name: Get the instance id
+       uri:
+         url: http://169.254.169.254/latest/meta-data/instance-id
+         return_content: yes
+       register: metadatainstanceid
      - name: "Set facts instance id"
-       set_fact: instance_id="{{ ansible_ec2_instance_id }}"
+       set_fact: instance_id="{{ metadatainstanceid.content }}"
      when: ansible_system_vendor == "Amazon EC2"
 
    # GCP

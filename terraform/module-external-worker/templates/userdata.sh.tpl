@@ -30,9 +30,7 @@ LOG_FILE="/var/log/user-data.log"
 export AWS_DEFAULT_REGION=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
 AWS_UNIQUE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
-# Be able to use paris region (https://github.com/boto/boto/issues/3783)
-pip install --upgrade boto
-
+#TMP fix for https://github.com/boto/boto/issues/3783
 echo '[Boto]
 use_endpoint_heuristics = True' > /etc/boto.cfg
 
