@@ -59,7 +59,7 @@ In order to run this task, couple elements are required within the infrastructur
 |`debug_public_key`|Public ssh key injected by Packer during the build of the AMI for debug purpose|`-`|`"ssh-rsa ..."`|`False`|
 |`env`|Name of the project's environment.|`-`|`($ environment $)`|`True`|
 |`external_worker_key`|Name of the Cycloid credential containing a public and a private SSH key to configure Cycloid workers.|`cycloid_creds_name`|`cycloid-worker-keys`|`True`|
-|`packer_ansible_version`|Version of ansible used during Packer build to run Ansible playbook|`-`|`"2.6"`|`False`|
+|`packer_ansible_version`|Version of ansible used during Packer build to run Ansible playbook|`-`|`"2.7"`|`False`|
 |`project`|Name of the project.|`-`|`($ project $)`|`True`|
 |`scheduler_api_address`|URL of the Pipeline scheduler API|`-`|`https://myscheduler.com`|`True`|
 |`scheduler_host`|Host or IP of the Pipeline scheduler|`-`|`"myscheduler.com"`|`True`|
