@@ -118,7 +118,7 @@
         name: jq
         state: present
 
-    - name: Install btrfs-tools for docker storage
+    - name: Install btrfs-tools
       apt:
         name: btrfs-tools
         state: present
