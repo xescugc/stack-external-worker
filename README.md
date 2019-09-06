@@ -75,6 +75,7 @@ In order to run this task, couple elements are required within the infrastructur
 |---|---|:---:|:---:|:---:|
 |`bastion_sg_allow`|Amazon source security group ID which will be allowed to connect on Magento front port 22 (ssh)|`-`|``|`False`|
 |`keypair_name`|SSH keypair name to use to deploy ec2 instances|`-`|`cycloid-external-worker`|`False`|
+|`extra_tags`|Dict of extra tags to add on aws resources. format { "foo" = "bar" }.|`-`|`{}`|`False`|
 |`metrics_sg_allow`|Additionnal security group ID to assign to Cycloid workers. Goal is to allow monitoring server to query metrics|`-`|`""`|`False`|
 |`public_subnets_ids`|Amazon public subnets IDs on which create each components.|`array`|``|`True`|
 |`vpc_id`|Amazon VPC id on which create each components.|`-`|``|`True`|
