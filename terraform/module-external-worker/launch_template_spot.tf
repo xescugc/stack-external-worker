@@ -38,39 +38,27 @@ resource "aws_launch_template" "worker" {
     name = aws_iam_instance_profile.worker_profile.name
   }
 
-  tags = {
-    "cycloid.io" = "true"
+  tags = merge(local.merged_tags, {
     Name       = "${var.project}-workertemplate-${var.env}"
-    client     = var.customer
-    env        = var.env
-    project    = var.project
     role       = "workertemplate"
-  }
+  })
 
   tag_specifications {
     resource_type = "instance"
 
-    tags = {
-      "cycloid.io" = "true"
+    tags = merge(local.merged_tags, {
       Name       = "${var.project}-worker-${var.env}"
-      client     = var.customer
-      env        = var.env
-      project    = var.project
       role       = "worker"
-    }
+    })
   }
 
   tag_specifications {
     resource_type = "volume"
 
-    tags = {
-      "cycloid.io" = "true"
+    tags = merge(local.merged_tags, {
       Name       = "${var.project}-worker-${var.env}"
-      client     = var.customer
-      env        = var.env
-      project    = var.project
       role       = "worker"
-    }
+    })
   }
 
   block_device_mappings {

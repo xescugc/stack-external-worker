@@ -20,6 +20,9 @@ module "external-worker" {
   #+ SSH keypair name to use to deploy ec2 instances
   keypair_name            = "cycloid-external-worker"
 
+  #. extra_tags (optional): {}
+  #+ Dict of extra tags to add on aws resources. format { "foo" = "bar" }.
+
   #. metrics_sg_allow (optional): ""
   #+ Additionnal security group ID to assign to Cycloid workers. Goal is to allow monitoring server to query metrics
   metrics_sg_allow        = data.terraform_remote_state.prometheus.outputs.($ environment $)_metrics_sg_allow

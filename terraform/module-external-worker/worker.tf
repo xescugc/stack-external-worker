@@ -22,14 +22,11 @@ resource "aws_security_group" "worker" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = {
-    "cycloid.io" = "true"
+
+  tags = merge(local.merged_tags, {
     Name       = "${var.project}-worker-${var.env}"
-    env        = var.env
-    project    = var.project
-    client     = var.customer
     role       = "worker"
-  }
+  })
 }
 
 ###
@@ -53,6 +50,15 @@ locals {
 locals {
   worker_launch_template_id             = var.worker_launch_template_id != "" ? var.worker_launch_template_id : local.default_worker_launch_template_id[var.worker_launch_template_profile]
   worker_launch_template_latest_version = var.worker_launch_template_latest_version != "" ? var.worker_launch_template_latest_version : local.default_worker_launch_template_latest_version[var.worker_launch_template_profile]
+
+  front_tags =  concat([
+            for tag in keys(local.merged_tags):
+               { "Key" = tag, "Value" = local.merged_tags[tag], "PropagateAtLaunch" = "true" }
+          ],
+          [
+               { "Key" = "Name", "Value" = "${var.project}-worker-${var.short_region[data.aws_region.current.name]}-${var.env}", "PropagateAtLaunch" = "true" },
+               { "Key" = "role", "Value" = "worker", "PropagateAtLaunch" = "true" }
+          ])
 }
 
 resource "aws_cloudformation_stack" "worker" {
@@ -76,14 +82,7 @@ resource "aws_cloudformation_stack" "worker" {
         "TerminationPolicies": ["OldestLaunchConfiguration", "NewestInstance"],
         "HealthCheckType": "EC2",
         "HealthCheckGracePeriod": 600,
-        "Tags" : [
-          { "Key" : "Name", "Value" : "${var.project}-worker-${var.short_region[data.aws_region.current.name]}-${var.env}", "PropagateAtLaunch" : "true" },
-          { "Key" : "client", "Value" : "${var.customer}", "PropagateAtLaunch" : "true" },
-          { "Key" : "env", "Value" : "${var.env}", "PropagateAtLaunch" : "true" },
-          { "Key" : "project", "Value" : "${var.project}", "PropagateAtLaunch" : "true" },
-          { "Key" : "role", "Value" : "worker", "PropagateAtLaunch" : "true" },
-          { "Key" : "cycloid.io", "Value" : "true", "PropagateAtLaunch" : "true" }
-        ]
+        "Tags" : ${jsonencode(local.front_tags)}
       },
       "UpdatePolicy": {
         "AutoScalingRollingUpdate": {
