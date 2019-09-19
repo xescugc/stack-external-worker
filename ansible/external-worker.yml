@@ -103,6 +103,17 @@
       tags:
        - notforbuild
 
+    - role: cycloid.systemd
+      systemd_type: dropin
+      systemd_dropin_service_name: "concourse-worker"
+      systemd_dropin_name: memorylimit
+      systemd_dropin_priority: "02"
+      systemd_dropin_content:
+        - "[Service]"
+        - "MemoryLimit={{ (ansible_memtotal_mb * 0.9) | int | abs }}M"
+      tags:
+        - notforbuild
+
     - role: cycloid.concourse
       tags:
         - concourse
