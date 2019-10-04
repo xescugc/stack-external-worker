@@ -77,73 +77,17 @@ resources:
               export LOG_FILE="/var/log/user-data.log"
               exec &> >(tee -a ${LOG_FILE})
 
+              export RUNTIMECONFIG_NAME="{{ name_prefix }}"
               export SCHEDULER_API_ADDRESS="{{ properties["schedulerApiAddress"] }}"
               export SCHEDULER_HOST="{{ properties["schedulerHost"] }}"
               export SCHEDULER_PORT="{{ properties["schedulerPort"] }}"
               export TSA_PUBLIC_KEY="{{ properties["tsaPublicKey"] }}"
               export WORKER_KEY="{{ properties["workerKey"] }}"
               export TEAM_ID="{{ properties["teamId"] }}"
+              export STACK_BRANCH="{{ properties["stackBranch"] }}"
+              export DEBUG="{{ properties["debugMode"] }}"
     
-              function finish {
-                  if [ $? -eq 0 ]; then
-                      echo "cloudformation signal-resource SUCCESS"
-                      gcloud beta runtime-config configs variables set \
-                        success/worker success --config-name {{ name_prefix }}-runtimeconfig
-                  else
-                      set +e
-                      echo "cloudformation signal-resource FAILURE"
-                      gcloud beta runtime-config configs variables set \
-                        failure/worker failure --config-name {{ name_prefix }}-runtimeconfig
-                      if ! [ -f "/tmp/keeprunning" ]; then
-                          sleep 60
-                          halt -p
-                      fi
-                  fi
-              }
-              trap finish EXIT
-              echo "### starting setup of cycloid worker"
-              apt-get update
-              apt-get install -y git python-setuptools curl jq
-              easy_install pip
-              pip install -U cryptography
-              pip install ansible==2.7
-    
-              cd /opt/
-              git clone -b master https://github.com/cycloid-community-catalog/stack-external-worker
-              cd stack-external-worker/ansible
-    
-              export HOME=/root
-              export VERSION=$(curl -sL "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
-    
-              {% raw %}
-              cat >> prod-worker.yml <<EOF
-              var_lib_device: /dev/disk/by-id/google-data-volume
-              concourse_version: "${VERSION}"
-              concourse_tsa_port: "$SCHEDULER_PORT"
-              concourse_tsa_host: "$SCHEDULER_HOST"
-              concourse_tsa_public_key: "$TSA_PUBLIC_KEY"
-              concourse_tsa_worker_key_base64: "$WORKER_KEY"
-              concourse_tsa_worker_key: "{{ concourse_tsa_worker_key_base64 | b64decode}}"
-              concourse_worker_team: "$TEAM_ID"
-              nvme_mapping_run: true
-              EOF
-              {% endraw %}
-    
-              ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
-    
-              echo "Run packer.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local packer.yml
-    
-              echo "Run external-worker.yml build steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
-    
-              echo "Run /home/admin/first-boot.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local /home/admin/first-boot.yml --diff
-    
-              echo "Run external-worker.yml boot steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
-
-              sleep 60 && systemctl status concourse-worker
+              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh" | bash -s gcp
 
 - name: {{ name_prefix }}-igm
   type: compute.v1.regionInstanceGroupManager
