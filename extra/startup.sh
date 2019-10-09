@@ -16,6 +16,7 @@ _() {
     DEBUG=${DEBUG:-0}
     STACK_BRANCH=${STACK_BRANCH:-"master"}
     VAR_LIB_DEVICE=${VAR_LIB_DEVICE:-""}
+    CLOUD_PROVIDER=${CLOUD_PROVIDER:-""}
 
     finish() {
         if [[ $? -eq 0 ]]; then
