@@ -187,6 +187,18 @@ Parameters:
     Description: Name of the project's environment
     Type: String
     Default: prod
+  StackBranch:
+    Type: String
+    Description: Branch of the external-worker stack to use.
+    Default: master
+  DebugMode:
+    Type: String
+    Description: Enable of disable debug mode.
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+    ConstraintDescription: must specify true or false.
 
 Mappings:
 # Generate :
@@ -418,75 +430,19 @@ Resources:
             - Ref: TeamId
             - "\n"
 
+            - "export STACK_BRANCH="
+            - Ref: StackBranch
+            - "\n"
+
+            - "export DEBUG="
+            - Ref: DebugMode
+            - "\n"
+
             - |
               export LOG_FILE="/var/log/user-data.log"
               exec &> >(tee -a ${LOG_FILE})
 
-              function finish {
-                  if [ $? -eq 0 ]; then
-                      echo "cloudformation signal-resource SUCCESS"
-                      aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status SUCCESS
-                  else
-                      set +e
-                      echo "cloudformation signal-resource FAILURE"
-                      if ! [ -f "/tmp/keeprunning" ]; then
-                          aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status FAILURE
-                          sleep 60
-                          halt -p
-                      fi
-                  fi
-              }
-              trap finish EXIT
-              echo "### starting setup of cycloid worker"
-              apt-get update
-              apt-get install -y git python-setuptools curl jq
-              easy_install pip
-              pip install -U cryptography
-              pip install ansible==2.7
-              pip install awscli
-
-              # Be able to use paris region (https://github.com/boto/boto/issues/3783)
-              pip install --upgrade boto
-
-              echo '[Boto]
-              use_endpoint_heuristics = True' > /etc/boto.cfg
-
-              cd /opt/
-              git clone https://github.com/cycloid-community-catalog/stack-external-worker
-              cd stack-external-worker/ansible
-
-              export HOME=/root
-              export AWS_DEFAULT_REGION=$(curl -sL http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
-              export AWS_UNIQUE_ID=$(curl -L http://169.254.169.254/latest/meta-data/instance-id)
-
-              export VERSION=$(curl -sL "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
-
-              cat >> prod-worker.yml <<EOF
-              concourse_version: "${VERSION}"
-              concourse_tsa_port: "$SCHEDULER_PORT"
-              concourse_tsa_host: "$SCHEDULER_HOST"
-              concourse_tsa_public_key: "$TSA_PUBLIC_KEY"
-              concourse_tsa_worker_key_base64: "$WORKER_KEY"
-              concourse_tsa_worker_key: "{{ concourse_tsa_worker_key_base64 | b64decode}}"
-              concourse_worker_team: "$TEAM_ID"
-              nvme_mapping_run: true
-              EOF
-
-              ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
-
-              echo "Run packer.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local packer.yml
-
-              echo "Run external-worker.yml build steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
-
-              echo "Run /home/admin/first-boot.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local /home/admin/first-boot.yml --diff
-
-              echo "Run external-worker.yml boot steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
-
-              sleep 60 && systemctl status concourse-worker
+              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh" | bash -s aws
 
   LaunchConfigSpotPrice:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -549,75 +505,19 @@ Resources:
             - Ref: TeamId
             - "\n"
 
+            - "export STACK_BRANCH="
+            - Ref: StackBranch
+            - "\n"
+
+            - "export DEBUG="
+            - Ref: DebugMode
+            - "\n"
+
             - |
               export LOG_FILE="/var/log/user-data.log"
               exec &> >(tee -a ${LOG_FILE})
 
-              function finish {
-                  if [ $? -eq 0 ]; then
-                      echo "cloudformation signal-resource SUCCESS"
-                      aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status SUCCESS
-                  else
-                      set +e
-                      echo "cloudformation signal-resource FAILURE"
-                      if ! [ -f "/tmp/keeprunning" ]; then
-                          aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status FAILURE
-                          sleep 60
-                          halt -p
-                      fi
-                  fi
-              }
-              trap finish EXIT
-              echo "### starting setup of cycloid worker"
-              apt-get update
-              apt-get install -y git python-setuptools curl jq
-              easy_install pip
-              pip install -U cryptography
-              pip install ansible==2.7
-              pip install awscli
-
-              # Be able to use paris region (https://github.com/boto/boto/issues/3783)
-              pip install --upgrade boto
-
-              echo '[Boto]
-              use_endpoint_heuristics = True' > /etc/boto.cfg
-
-              cd /opt/
-              git clone https://github.com/cycloid-community-catalog/stack-external-worker
-              cd stack-external-worker/ansible
-
-              export HOME=/root
-              export AWS_DEFAULT_REGION=$(curl -sL http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
-              export AWS_UNIQUE_ID=$(curl -L http://169.254.169.254/latest/meta-data/instance-id)
-
-              export VERSION=$(curl -sL "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')
-
-              cat >> prod-worker.yml <<EOF
-              concourse_version: "${VERSION}"
-              concourse_tsa_port: "$SCHEDULER_PORT"
-              concourse_tsa_host: "$SCHEDULER_HOST"
-              concourse_tsa_public_key: "$TSA_PUBLIC_KEY"
-              concourse_tsa_worker_key_base64: "$WORKER_KEY"
-              concourse_tsa_worker_key: "{{ concourse_tsa_worker_key_base64 | b64decode}}"
-              concourse_worker_team: "$TEAM_ID"
-              nvme_mapping_run: true
-              EOF
-
-              ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
-
-              echo "Run packer.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local packer.yml
-
-              echo "Run external-worker.yml build steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
-
-              echo "Run /home/admin/first-boot.yml"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local /home/admin/first-boot.yml --diff
-
-              echo "Run external-worker.yml boot steps"
-              ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild,telegraf
-
-              sleep 60 && systemctl status concourse-worker
+              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh" | bash -s aws
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
