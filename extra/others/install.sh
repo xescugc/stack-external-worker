@@ -28,4 +28,5 @@ export TEAM_ID="XXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXX"
 export STACK_BRANCH=master
 
 # Run the installation script.
-curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh" | bash
+# The $RANDOM variable is here used to avoid remote network caching.
+curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh?${RANDOM}" | bash

@@ -442,7 +442,9 @@ Resources:
               export LOG_FILE="/var/log/user-data.log"
               exec &> >(tee -a ${LOG_FILE})
 
-              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh" | bash -s aws
+              # Run the startup installation script.
+              # The $RANDOM variable is here used to avoid remote network caching.
+              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh?${RANDOM}" | bash -s aws
 
   LaunchConfigSpotPrice:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -517,7 +519,9 @@ Resources:
               export LOG_FILE="/var/log/user-data.log"
               exec &> >(tee -a ${LOG_FILE})
 
-              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh" | bash -s aws
+              # Run the startup installation script.
+              # The $RANDOM variable is here used to avoid remote network caching.
+              curl -sSL "https://raw.githubusercontent.com/cycloid-community-catalog/stack-external-worker/${STACK_BRANCH}/extra/startup.sh?${RANDOM}" | bash -s aws
 
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
