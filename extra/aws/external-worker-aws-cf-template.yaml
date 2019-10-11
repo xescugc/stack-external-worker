@@ -19,7 +19,7 @@ Parameters:
     Description: Number of Cycloid CI workers.
     Type: Number
     Default: 1
-    ConstraintDescription: Maximum number of workers if 1000.
+    ConstraintDescription: Maximum number of workers is 1000.
   VolumeSize:
     Description: Size of the EBS volume for Cycloid CI worker
     Type: Number
