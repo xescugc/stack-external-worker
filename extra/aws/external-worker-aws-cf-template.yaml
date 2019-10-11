@@ -16,10 +16,10 @@ Parameters:
     Type: String
     Default: 32223
   NumberOfWorkers:
-    Description: Number of Cycloid CI workers. If the InstanceSpotPriceEnabled variable is true, the value will be always 0 but will be used for Desired Capacity.
+    Description: Number of Cycloid CI workers.
     Type: Number
     Default: 1
-    ConstraintDescription: If the InstanceSpotPriceEnabled variable is true, the value will be always 0.
+    ConstraintDescription: Maximum number of workers if 1000.
   VolumeSize:
     Description: Size of the EBS volume for Cycloid CI worker
     Type: Number
@@ -336,8 +336,7 @@ Resources:
           - EnabledSpotInstances
           - 0
           - Ref: NumberOfWorkers
-      MaxSize:
-        Ref: NumberOfWorkers
+      MaxSize: 1001
       Tags:
         - Key: "Name"
           Value: "cycloid-ci-workers"
@@ -578,12 +577,9 @@ Resources:
     Properties:
       AutoScalingGroupName:
         Ref: WorkersGroup
-      MaxSize:
-        Ref: NumberOfWorkers
-      DesiredCapacity:
-        Ref: NumberOfWorkers
-      MinSize:
-          - 0
+      MaxSize: 0
+      MinSize: 0
+      DesiredCapacity: 0
       Recurrence:
         Ref: ScheduledWorkersStopRecurrence
   ScheduledWorkersStart:
@@ -592,7 +588,13 @@ Resources:
     Properties:
       AutoScalingGroupName:
         Ref: WorkersGroup
-      MaxSize: 0
-      MinSize: 0
+      MaxSize: 1001
+      DesiredCapacity:
+        Ref: NumberOfWorkers
+      MinSize:
+        Fn::If:
+          - EnabledSpotInstances
+          - 0
+          - Ref: NumberOfWorkers
       Recurrence:
         Ref: ScheduledWorkersStartRecurrence
