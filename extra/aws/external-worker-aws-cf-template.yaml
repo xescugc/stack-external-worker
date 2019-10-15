@@ -167,11 +167,11 @@ Parameters:
   ScheduledWorkersStartRecurrence:
     Type: String
     Description: Specifying the recurring StartTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
-    Default: "0 20 * * *"
+    Default: "0 7 * * *"
   ScheduledWorkersStopRecurrence:
     Type: String
     Description: Specifying the recurring EndTime (UTC) for this action, in Unix cron syntax format. For more information about cron syntax, see http://crontab.org/.
-    Default: "0 7 * * *"
+    Default: "0 20 * * *"
   CustomerTag:
     Description: Name of the Cycloid Organization, used as customer variable name
     Type: String
