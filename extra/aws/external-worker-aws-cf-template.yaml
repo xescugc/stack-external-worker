@@ -339,7 +339,11 @@ Resources:
       MaxSize: 1001
       Tags:
         - Key: "Name"
-          Value: "cycloid-ci-workers"
+          Value:
+            Ref: AWS::StackName
+          PropagateAtLaunch: true
+        - Key: "role"
+          Value: "worker"
           PropagateAtLaunch: true
         - Key: "cycloid.io"
           Value: "true"
@@ -351,9 +355,6 @@ Resources:
         - Key: "customer"
           Value:
             Ref: CustomerTag
-          PropagateAtLaunch: true
-        - Key: "role"
-          Value: "worker"
           PropagateAtLaunch: true
         - Key: "env"
           Value:
@@ -539,15 +540,21 @@ Resources:
       VpcId:
         Ref: VpcId
       Tags:
-        -
-          Key: "Name"
-          Value: "cycloid-ci-workers"
-        -
-          Key: "cycloid.io"
+        - Key: "Name"
+          Value:
+            Ref: AWS::StackName
+        - Key: "cycloid.io"
           Value: "true"
-        -
-          Key: "project"
-          Value: "cycloid-ci-workers"
+        - Key: "project"
+          Value:
+            Ref: ProjectTag
+        - Key: "customer"
+          Value:
+            Ref: CustomerTag
+        - Key: "env"
+          Value:
+            Ref: EnvironmentTag
+
   MetricsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -561,15 +568,20 @@ Resources:
       VpcId:
         Ref: VpcId
       Tags:
-        -
-          Key: "Name"
-          Value: "cycloid-ci-workers"
-        -
-          Key: "cycloid.io"
+        - Key: "Name"
+          Value:
+            Ref: AWS::StackName
+        - Key: "cycloid.io"
           Value: "true"
-        -
-          Key: "project"
-          Value: "cycloid-ci-workers"
+        - Key: "project"
+          Value:
+            Ref: ProjectTag
+        - Key: "customer"
+          Value:
+            Ref: CustomerTag
+        - Key: "env"
+          Value:
+            Ref: EnvironmentTag
 
   ScheduledWorkersStop:
     Type: AWS::AutoScaling::ScheduledAction
