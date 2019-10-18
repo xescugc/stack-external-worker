@@ -89,6 +89,10 @@ Parameters:
     - c4.2xlarge
     - c4.4xlarge
     - c4.8xlarge
+    - c5.large
+    - c5.xlarge
+    - c5.2xlarge
+    - c5.4xlarge
     - c5d.large
     - c5d.xlarge
     - c5d.2xlarge
