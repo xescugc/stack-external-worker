@@ -179,14 +179,14 @@ Parameters:
   CustomerTag:
     Description: Name of the Cycloid Organization, used as customer variable name
     Type: String
-  ProjectTag:
-    Description: Name of the project
-    Type: String
-    Default: cycloid-ci-workers
   EnvironmentTag:
     Description: Name of the project's environment
     Type: String
     Default: prod
+  RoleTag:
+    Description: Name for the role tag
+    Type: String
+    Default: workers
   StackBranch:
     Type: String
     Description: Branch of the external-worker stack to use.
@@ -249,7 +249,12 @@ Resources:
   WorkersRole:
     Type: "AWS::IAM::Role"
     Properties:
-      #RoleName: "cycloid-ci-workers"
+      RoleName:
+        Fn::Join:
+          - '-'
+          - - !Ref AWS::StackName
+            - !Ref EnvironmentTag
+            - 'role'
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -263,7 +268,12 @@ Resources:
       Path: "/"
       Policies:
         -
-          PolicyName: "cycloid-ci-workers"
+          PolicyName:
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
+                - 'ec2-tags'
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -272,7 +282,12 @@ Resources:
                 Action: "ec2:DescribeTags"
                 Resource: "*"
         -
-          PolicyName: "cycloid-ci-workers-cf-signals"
+          PolicyName:
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
+                - 'cf-signals'
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -282,7 +297,12 @@ Resources:
                 Resource:
                   Ref: AWS::StackId
         -
-          PolicyName: "cycloid-ci-workers-cw-logs-push"
+          PolicyName:
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
+                - 'cw-logs-push'
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -297,7 +317,12 @@ Resources:
                   - "logs:CreateLogStream"
                 Resource: "arn:aws:logs:*:*:log-group:cycloid-ci-workers_prod:*"
         -
-          PolicyName: "cycloid-ci-workers-cw-logs"
+          PolicyName:
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
+                - 'cw-logs'
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -319,6 +344,12 @@ Resources:
   WorkersInstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
+      InstanceProfileName:
+        Fn::Join:
+          - '-'
+          - - !Ref AWS::StackName
+            - !Ref EnvironmentTag
+            - 'instance-profile'
       Path: "/"
       Roles:
         - Ref: "WorkersRole"
@@ -344,17 +375,21 @@ Resources:
       Tags:
         - Key: "Name"
           Value:
-            Ref: AWS::StackName
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
           PropagateAtLaunch: true
         - Key: "role"
-          Value: "worker"
+          Value:
+            Ref: RoleTag
           PropagateAtLaunch: true
         - Key: "cycloid.io"
           Value: "true"
           PropagateAtLaunch: true
         - Key: "project"
           Value:
-            Ref: ProjectTag
+            Ref: AWS::StackName
           PropagateAtLaunch: true
         - Key: "customer"
           Value:
@@ -406,8 +441,16 @@ Resources:
           - ''
           - - "#!/bin/bash -xe\n"
 
-            - "export STACK_NAME="
-            - Ref: AWS::StackId
+            - "export PROJECT="
+            - Ref: AWS::StackName
+            - "\n"
+
+            - "export ENV="
+            - Ref: EnvironmentTag
+            - "\n"
+
+            - "export ROLE="
+            - Ref: RoleTag
             - "\n"
 
             - "export SCHEDULER_API_ADDRESS='"
@@ -487,8 +530,16 @@ Resources:
           - ''
           - - "#!/bin/bash -xe\n"
 
-            - "export STACK_NAME="
-            - Ref: AWS::StackId
+            - "export PROJECT="
+            - Ref: AWS::StackName
+            - "\n"
+
+            - "export ENV="
+            - Ref: EnvironmentTag
+            - "\n"
+
+            - "export ROLE="
+            - Ref: RoleTag
             - "\n"
 
             - "export SCHEDULER_API_ADDRESS='"
@@ -534,6 +585,12 @@ Resources:
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName:
+        Fn::Join:
+          - '-'
+          - - !Ref AWS::StackName
+            - !Ref EnvironmentTag
+            - 'instance-sg'
       GroupDescription: Enable SSH access and HTTP from the load balancer only
       SecurityGroupIngress:
       - IpProtocol: tcp
@@ -546,12 +603,16 @@ Resources:
       Tags:
         - Key: "Name"
           Value:
-            Ref: AWS::StackName
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
+                - 'instance-sg'
         - Key: "cycloid.io"
           Value: "true"
         - Key: "project"
           Value:
-            Ref: ProjectTag
+            Ref: AWS::StackName
         - Key: "customer"
           Value:
             Ref: CustomerTag
@@ -562,6 +623,12 @@ Resources:
   MetricsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupName:
+        Fn::Join:
+          - '-'
+          - - !Ref AWS::StackName
+            - !Ref EnvironmentTag
+            - 'metrics-sg'
       GroupDescription: Allow metrics server to collect metrics
       SecurityGroupIngress:
       - IpProtocol: tcp
@@ -574,12 +641,16 @@ Resources:
       Tags:
         - Key: "Name"
           Value:
-            Ref: AWS::StackName
+            Fn::Join:
+              - '-'
+              - - !Ref AWS::StackName
+                - !Ref EnvironmentTag
+                - 'metrics-sg'
         - Key: "cycloid.io"
           Value: "true"
         - Key: "project"
           Value:
-            Ref: ProjectTag
+            Ref: AWS::StackName
         - Key: "customer"
           Value:
             Ref: CustomerTag
