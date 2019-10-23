@@ -48,6 +48,13 @@ concourse_4_worker_default_options: |
 concourse_install_dir: /var/lib/concourse
 concourse_work_dir: /var/lib/concourse/datas
 
+# Set Concourse worker user to root user to allow the usage of cgroups for container_limits
+concourse_user: root
+concourse_uid: 0
+concourse_group: "{{ concourse_user }}"
+concourse_gid: "{{ concourse_uid }}"
+
+
 # Filesystem used to store concourse datas. (currently best perf with btrfs). Possible values "btrfs|ext4"
 fs_volume_type: btrfs
 
