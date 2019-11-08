@@ -79,12 +79,12 @@
 
 
    - name: "Setup instance hostname"
-     hostname: name="{{ ansible_hostname }}"
+     hostname: name="{{ ansible_hostname | truncate(64, False, '') }}"
 
    - name: "Setup instance AWS Hosts file"
      lineinfile: dest=/etc/hosts
                  regexp='^{{ ansible_eth0.ipv4.address }}.*'
-                 line="{{ ansible_eth0.ipv4.address }} {{ ansible_hostname }}"
+                 line="{{ ansible_eth0.ipv4.address }} {{ ansible_hostname | truncate(64, False, '') }}"
                  state=present
 
    - name: "Find files containing packer's hostname"
@@ -95,7 +95,7 @@
      replace:
        dest: "{{ item }}"
        regexp: "{{ ami_hostname }}"
-       replace: "{{ ansible_hostname }}"
+       replace: "{{ ansible_hostname | truncate(64, False, '') }}"
      with_items: "{{ relics_hostname.stdout_lines }}"
 
    - name: "Find files containing packer's IP address"

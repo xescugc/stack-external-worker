@@ -49,19 +49,17 @@ resources:
           diskSizeGb: {{ properties["volumeSize"] }}
         labels:
           cycloidio: "true"
-          role: worker
           project: {{ properties["projectTag"] }}
           customer: {{ properties["customerTag"] }}
-          role: "worker"
+          role: {{ properties["roleTag"] }}
           env: {{ properties["environmentTag"] }}
           app: {{ name_prefix }}
 
       labels:
         cycloidio: "true"
-        role: worker
         project: {{ properties["projectTag"] }}
         customer: {{ properties["customerTag"] }}
-        role: "worker"
+        role: {{ properties["roleTag"] }}
         env: {{ properties["environmentTag"] }}
         app: {{ name_prefix }}
       serviceAccounts:
@@ -78,6 +76,9 @@ resources:
               exec &> >(tee -a ${LOG_FILE})
 
               export RUNTIMECONFIG_NAME="{{ name_prefix }}"
+              export PROJECT="{{ properties["projectTag"] }}"
+              export ENV="{{ properties["environmentTag"] }}"
+              export ROLE="{{ properties["roleTag"] }}"
               export SCHEDULER_API_ADDRESS="{{ properties["schedulerApiAddress"] }}"
               export SCHEDULER_HOST="{{ properties["schedulerHost"] }}"
               export SCHEDULER_PORT="{{ properties["schedulerPort"] }}"
@@ -106,10 +107,9 @@ resources:
       type: PROACTIVE
     labels:
       cycloidio: "true"
-      role: worker
       project: {{ properties["projectTag"] }}
       customer: {{ properties["customerTag"] }}
-      role: "worker"
+      role: {{ properties["roleTag"] }}
       env: {{ properties["environmentTag"] }}
       app: {{ name_prefix }}
 
@@ -126,10 +126,9 @@ resources:
       #coolDownPeriodSec: 90
     labels:
       cycloidio: "true"
-      role: worker
       project: {{ properties["projectTag"] }}
       customer: {{ properties["customerTag"] }}
-      role: "worker"
+      role: {{ properties["roleTag"] }}
       env: {{ properties["environmentTag"] }}
       app: {{ name_prefix }}
     

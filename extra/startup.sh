@@ -18,6 +18,12 @@ _() {
     VAR_LIB_DEVICE=${VAR_LIB_DEVICE:-""}
     CLOUD_PROVIDER=${CLOUD_PROVIDER:-""}
 
+    # For backward compatibility with older deployments
+    PROJECT=${PROJECT:-"cycloid-ci-workers"}
+    ROLE="${ROLE:-"workers"}"
+    ENV="${ENV:-"prod"}"
+    STACK_NAME="${STACK_NAME:-$PROJECT}"
+
     finish() {
         if [[ $? -eq 0 ]]; then
             echo "Startup script SUCCESS"
@@ -89,13 +95,12 @@ _() {
         [[ -z "${TSA_PUBLIC_KEY}" ]] && echo "error: TSA_PUBLIC_KEY envvar must be set." >&2
         [[ -z "${WORKER_KEY}" ]] && echo "error: WORKER_KEY envvar must be set." >&2
         [[ -z "${TEAM_ID}" ]] && echo "error: TEAM_ID envvar must be set." >&2
+        [[ -z "${PROJECT}" ]] && echo "error: PROJECT envvar must be set." >&2
+        [[ -z "${ENV}" ]] && echo "error: ENV envvar must be set." >&2
+        [[ -z "${ROLE}" ]] && echo "error: ROLE envvar must be set." >&2
 
         if [[ "${CLOUD_PROVIDER}" == "gcp" ]]; then
             [[ -z "${RUNTIMECONFIG_NAME}" ]] && echo "error: RUNTIMECONFIG_NAME envvar must be set." >&2
-        fi
-
-        if [[ "${CLOUD_PROVIDER}" == "aws" ]]; then
-            [[ -z "${STACK_NAME}" ]] && echo "error: STACK_NAME envvar must be set." >&2
         fi
 
         if [[ -z "${VAR_LIB_DEVICE}" ]]; then
@@ -144,7 +149,7 @@ use_endpoint_heuristics = True' > /etc/boto.cfg
     export HOME=/root
     export VERSION=${VERSION:-$(curl -sL "${SCHEDULER_API_ADDRESS}/api/v1/info" | jq -r '.version')}
 
-    cat >> prod-worker.yml <<EOF
+    cat >> "${ENV}-worker.yml" <<EOF
 concourse_version: "${VERSION}"
 concourse_tsa_port: "$SCHEDULER_PORT"
 concourse_tsa_host: "$SCHEDULER_HOST"
@@ -159,16 +164,16 @@ EOF
     ansible-galaxy install -r requirements.yml --force --roles-path=/etc/ansible/roles
 
     echo "Run packer.yml"
-    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local packer.yml
+    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=${ROLE} -e env=${ENV} -e project=${PROJECT} --connection local packer.yml
 
     echo "Run external-worker.yml build steps"
-    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
+    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=${ROLE} -e env=${ENV} -e project=${PROJECT} --connection local external-worker.yml --diff --skip-tags deploy,notforbuild,telegraf
 
     echo "Run /home/admin/first-boot.yml"
-    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local /home/admin/first-boot.yml --diff
+    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=${ROLE} -e env=${ENV} -e project=${PROJECT} --connection local /home/admin/first-boot.yml --diff
 
     echo "Run external-worker.yml boot steps"
-    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=workers -e env=prod -e project=cycloid-ci-workers --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
+    ANSIBLE_FORCE_COLOR=1 PYTHONUNBUFFERED=1 ansible-playbook -e role=${ROLE} -e env=${ENV} -e project=${PROJECT} --connection local external-worker.yml --diff --tags runatboot,notforbuild --skip-tags telegraf
 
     sleep 60 && systemctl status concourse-worker
 }

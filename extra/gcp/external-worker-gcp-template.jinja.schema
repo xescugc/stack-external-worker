@@ -44,6 +44,10 @@ properties:
     type: string
     default: "prod"
     description: Name of the project's environment.
+  roleTag:
+    type: string
+    default: "workers"
+    description: Name of the project's role tag.
   preemptible:
     type: boolean
     default: false
