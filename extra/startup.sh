@@ -127,8 +127,13 @@ _() {
 
     echo "### starting setup of cycloid worker"
     apt-get update
-    apt-get install -y git python-setuptools curl jq
-    easy_install pip
+    apt-get install -y --no-install-recommends git python-setuptools curl jq
+
+    if command -v easy_install >/dev/null 2>&1; then
+        easy_install pip
+    else
+        apt-get install -y --no-install-recommends python-pip
+    fi
     pip install -U cryptography
     pip install ansible==2.7
 
