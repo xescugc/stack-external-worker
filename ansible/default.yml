@@ -21,6 +21,7 @@ concourse_worker_env:
     CONCOURSE_GARDEN_LOG_LEVEL: "error"
     CONCOURSE_GARDEN_NETWORK_POOL: "10.254.0.0/16"
     CONCOURSE_GARDEN_MAX_CONTAINERS: 1024
+    CONCOURSE_GARDEN_ADDITIONAL_DNS_SERVER: "1.1.1.1,1.0.0.1"
 
 concourse_worker_options: "{% if concourse_version is version('5.0', '>=') %}{{ concourse_worker_default_options }}{% else %}{{ concourse_4_worker_default_options }}{% endif %}"
 
