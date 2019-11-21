@@ -53,7 +53,7 @@ _() {
 
     usage() {
         echo "Usage: $SCRIPT_NAME [-d] [-b BRANCH_NAME] [<cloud_provider>]" >&2
-        echo "The <cloud_provider> argument is optional, it can be either `aws` or `gcp`." >&2
+        echo "The <cloud_provider> argument is optional, it can be either `aws`, `azure` or `gcp`." >&2
         echo '' >&2
         echo '  -d           Debug mode.' >&2
         echo '  -b           Branch to use for the external-worker stack (default: master).' >&2
@@ -108,6 +108,8 @@ _() {
                 VAR_LIB_DEVICE="/dev/disk/by-id/google-data-volume"
             elif [[ "${CLOUD_PROVIDER}" == "aws" ]]; then
                 VAR_LIB_DEVICE="/dev/xvdf"
+            elif [[ "${CLOUD_PROVIDER}" == "azure" ]]; then
+                VAR_LIB_DEVICE="/dev/disk/azure/scsi1/lun0"
             else
                 VAR_LIB_DEVICE="/dev/sda"
             fi
@@ -125,8 +127,13 @@ _() {
 
     echo "### starting setup of cycloid worker"
     apt-get update
-    apt-get install -y git python-setuptools curl jq
-    easy_install pip
+    apt-get install -y --no-install-recommends git python-setuptools curl jq
+
+    if command -v easy_install >/dev/null 2>&1; then
+        easy_install pip
+    else
+        apt-get install -y --no-install-recommends python-pip
+    fi
     pip install -U cryptography
     pip install ansible==2.7
 
