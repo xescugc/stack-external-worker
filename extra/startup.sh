@@ -24,28 +24,31 @@ _() {
     ENV="${ENV:-"prod"}"
     STACK_NAME="${STACK_NAME:-$PROJECT}"
 
+    cloud_signal_status() {
+        local status="$1"
+        if [[ ${CLOUD_PROVIDER} == "aws" ]]; then
+            aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status ${status^^}
+        elif [[ ${CLOUD_PROVIDER} == "gcp" ]]; then
+            gcloud beta runtime-config configs variables set "${status,,}/worker" ${status,,} --config-name ${RUNTIMECONFIG_NAME}-runtimeconfig
+        fi
+    }
+
     finish() {
         if [[ $? -eq 0 ]]; then
-            echo "Startup script SUCCESS"
-            if [[ ${CLOUD_PROVIDER} == "aws" ]]; then
-                aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status SUCCESS
-            elif [[ ${CLOUD_PROVIDER} == "gcp" ]]; then
-                gcloud beta runtime-config configs variables set success/worker success --config-name ${RUNTIMECONFIG_NAME}-runtimeconfig
-            fi
+            echo "[startup.sh] SUCCESS"
+            cloud_signal_status SUCCESS
         else
             set +e
-            echo "Startup script FAILURE"
-            if [[ ! -f "/tmp/keeprunning" ]]; then
-                if [[ ${CLOUD_PROVIDER} == "aws" ]]; then
-                    aws cloudformation signal-resource --stack-name ${STACK_NAME} --logical-resource-id WorkersGroup --unique-id ${AWS_UNIQUE_ID} --region ${AWS_DEFAULT_REGION} --status FAILURE
-                elif [[ ${CLOUD_PROVIDER} == "gcp" ]]; then
-                    gcloud beta runtime-config configs variables set failure/worker failure --config-name ${RUNTIMECONFIG_NAME}-runtimeconfig
-                fi
-                sleep 60
-                echo "[startup.sh] halt"
-                halt -p
-            else
+            echo "[startup.sh] FAILURE"
+            echo "[startup.sh] waiting 1min for debug purpose, create a /tmp/keeprunning file to prevent halting the instance"
+            sleep 60
+            if [[ -f "/tmp/keeprunning" ]]; then
                 echo "[startup.sh] keeprunning"
+                cloud_signal_status SUCCESS
+            else
+                echo "[startup.sh] halting"
+                cloud_signal_status FAILURE
+                halt -p
             fi
         fi
     }
