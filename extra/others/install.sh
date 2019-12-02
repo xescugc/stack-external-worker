@@ -5,6 +5,11 @@ set -ex
 export LOG_FILE="/var/log/user-data.log"
 exec &> >(tee -a ${LOG_FILE})
 
+# Project name, env and role used in the concourse worker naming.
+export PROJECT="cycloid-ci-workers"
+export ENV="prod"
+export ROLE="workers"
+
 # Informations needed to connect to Cycloid SaaS Concourse.
 export SCHEDULER_API_ADDRESS="https://scheduler.cycloid.io"
 export SCHEDULER_HOST="scheduler.cycloid.io"
