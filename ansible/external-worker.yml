@@ -76,7 +76,11 @@
        - notforbuild
 
   roles:
-    - {role: cycloid.telegraf, tags: telegraf}
+    - role: cycloid.telegraf
+      ignore_errors: true
+      tags:
+        - telegraf
+
     - role: cycloid.ebs-automatic-nvme-mapping
       tags:
         - nvme
@@ -117,7 +121,9 @@
     - role: cycloid.concourse
       tags:
         - concourse
+
     - role: cycloid.fluentd
+      ignore_errors: true
       tags:
         - fluentd
         - runatboot
