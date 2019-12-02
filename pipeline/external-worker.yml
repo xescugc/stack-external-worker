@@ -382,7 +382,6 @@ jobs:
 
       - put: tfstate
         params:
-          env_name: ((project))-((env))
           action: destroy
           terraform_source: merged-stack/
           var_files:
