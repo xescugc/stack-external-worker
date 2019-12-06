@@ -405,7 +405,11 @@ Resources:
         Count: '1'
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        MinInstancesInService: '1'
+        MinInstancesInService:
+          Fn::If:
+            - EnabledSpotInstances
+            - 0
+            - 1
         MaxBatchSize: '1'
         PauseTime: PT15M
         WaitOnResourceSignals: 'true'
