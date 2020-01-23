@@ -574,6 +574,10 @@ Resources:
             - Ref: StackBranch
             - "\n"
 
+            - "export VERSION="
+            - Ref: WorkerVersion
+            - "\n"
+
             - "export DEBUG="
             - Ref: DebugMode
             - "\n"
