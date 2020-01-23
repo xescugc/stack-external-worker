@@ -136,7 +136,7 @@ _() {
             elif [[ "${CLOUD_PROVIDER}" == "flexible-engine" ]]; then
                 VAR_LIB_DEVICE="/dev/vdb"
             else
-                VAR_LIB_DEVICE="/dev/sda"
+                VAR_LIB_DEVICE="nodevice"
             fi
         fi
 
@@ -173,7 +173,7 @@ _() {
     TMP_WORKER_KEY=$(mktemp)
     echo $WORKER_KEY | base64 -d > $TMP_WORKER_KEY
     chmod 400 $TMP_WORKER_KEY
-    
+
     ssh-keygen -l -f $TMP_WORKER_KEY > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "error: WORKER_KEY Does not seems to be an SSH PRIVATE KEY." >&2 && exit 2
