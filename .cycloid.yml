@@ -2,6 +2,7 @@
 name: 'External worker'
 canonical: 'stack-external-worker'
 description: 'This stack will deploy an Amazon ASG with external workers for Cycloid.io'
+status: 'public'
 keywords:
   - 'workers'
   - 'worker'
